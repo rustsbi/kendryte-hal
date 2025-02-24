@@ -2,4 +2,5 @@
 members = [
     "kendryte-hal",
     "kendryte-rt",
+    "xtask",
 ]

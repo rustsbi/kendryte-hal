@@ -1,0 +1,24 @@
+[package]
+name = "xtask"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+sha2 = "0.10"
+aes-gcm = "0.10"
+num-bigint-dig = "0.8"
+hex = "0.4"
+rsa = { version = "0.9", features = ["sha2"] }
+thiserror = "2"
+clap = { version = "4.5", features = ["derive"] }
+num-bigint = "0.4.6"
+sm4 = "0.5"
+sm2 = { version = "0.13.3", features = ["arithmetic"], git = "https://github.com/ZhengLongBing/sm2.git" }
+sm3 = "0.4"
+cbc = { version = "0.1", features = ["block-padding", "alloc"] }
+cipher = "0.4"
+aes = "0.8.4"
+primeorder = "0.13"
+elliptic-curve = "0.13"
+signature = "2.2.0"
