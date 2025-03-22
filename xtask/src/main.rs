@@ -2,8 +2,8 @@ use clap::Parser;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
-use xtask::gen::firmware::{gen_firmware, EncryptionType};
-use xtask::gen::image::gen_image;
+use xtask::generate::firmware::{gen_firmware, EncryptionType};
+use xtask::generate::image::gen_image;
 use xtask::{Cli, Command};
 
 /// Main function for the xtask utility.

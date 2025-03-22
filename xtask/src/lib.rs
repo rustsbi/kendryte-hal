@@ -5,7 +5,7 @@
 
 use clap::{Parser, Subcommand};
 pub mod error;
-pub mod gen;
+pub mod generate;
 
 /// CLI structure for the xtask utility.
 #[derive(Parser, Debug)]

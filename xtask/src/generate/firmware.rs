@@ -5,7 +5,7 @@
 //! SM4 and AES, along with RSA and SM2 signatures.
 
 use crate::error::{XtaskError, XtaskResult};
-use crate::gen::config::{
+use crate::generate::config::{
     ADD_AUTH_DATA, D, E, ID, ID_LEN, INITIAL_AES_IV, INITIAL_AES_KEY, K, MAGIC, N, PRIVATE_KEY,
     PUBLIC_KEY_X, PUBLIC_KEY_Y, SM4_IV, SM4_KEY, VERSION,
 };
@@ -280,7 +280,7 @@ fn sha_256(data: &[u8]) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use crate::gen::firmware::{gen_firmware, sha_256, EncryptionType};
+    use crate::r#gen::firmware::{gen_firmware, sha_256, EncryptionType};
 
     #[test]
     fn test_none_encryption() {
