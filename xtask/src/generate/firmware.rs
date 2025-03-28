@@ -280,7 +280,7 @@ fn sha_256(data: &[u8]) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use crate::r#gen::firmware::{gen_firmware, sha_256, EncryptionType};
+    use crate::generate::firmware::{gen_firmware, sha_256, EncryptionType};
 
     #[test]
     fn test_none_encryption() {
