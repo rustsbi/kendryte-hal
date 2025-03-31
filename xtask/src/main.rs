@@ -15,18 +15,8 @@ fn main() {
             output,
             encryption,
         } => {
-            // Parse encryption type, defaulting to "none" if not specified
-            let encryption = encryption
-                .map(|s| s.parse())
-                .unwrap_or(Ok(EncryptionType::None));
-            let encryption = match encryption {
-                Ok(e) => e,
-                Err(e) => {
-                    println!("Failed to parse encryption parameters: {}", e);
-                    return;
-                }
-            };
-
+            // defaulting to `None` if not specified
+            let encryption = encryption.unwrap_or_default();
             // Read input file
             let input_file = Path::new(&input);
 
@@ -36,23 +26,17 @@ fn main() {
                 return;
             };
 
-            // Extract file name without extension
-            let file_name = match input_file.file_name() {
-                Some(f) => f,
+            // Get input file path
+            let path_buf = input_file.to_path_buf();
+            let path = match path_buf.to_str() {
+                Some(p) => p,
                 None => {
-                    println!("Failed to get file name");
+                    println!("Failed to get file path");
                     return;
                 }
             };
 
-            let file_name_str = match file_name.to_str() {
-                Some(s) => s,
-                None => {
-                    println!("Failed to convert file name to string");
-                    return;
-                }
-            };
-            let (name, _) = split_file_name(file_name_str);
+            let (name, _) = split_file_name(path);
 
             // Read input file contents
             let mut input_file = match File::open(input_file) {

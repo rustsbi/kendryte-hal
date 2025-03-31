@@ -284,9 +284,8 @@ mod tests {
 
     #[test]
     fn test_none_encryption() {
-        let firmware =
-            include_bytes!("../../../xtask/tests/data/firmware.bin").as_slice();
-        let expect_encrypt_firmware  =
+        let firmware = include_bytes!("../../../xtask/tests/data/firmware.bin").as_slice();
+        let expect_encrypt_firmware =
             include_bytes!("../../tests/data/firmware_none_encryption.bin").as_slice();
 
         let expect_encrypt_firmware_hash = sha_256(&expect_encrypt_firmware);
@@ -300,8 +299,7 @@ mod tests {
 
     #[test]
     fn test_aes_encryption() {
-        let firmware =
-            include_bytes!("../../../xtask/tests/data/firmware.bin").as_slice();
+        let firmware = include_bytes!("../../../xtask/tests/data/firmware.bin").as_slice();
         let expect_encrypt_firmware =
             include_bytes!("../../tests/data/firmware_aes_encryption.bin").as_slice();
 
@@ -316,8 +314,7 @@ mod tests {
 
     #[test]
     fn test_sm4_encryption() {
-        let firmware =
-            include_bytes!("../../../xtask/tests/data/firmware.bin").as_slice();
+        let firmware = include_bytes!("../../../xtask/tests/data/firmware.bin").as_slice();
         let expect_encrypt_firmware =
             include_bytes!("../../tests/data/firmware_sm4_encryption.bin").as_slice();
 
