@@ -2,4 +2,5 @@
 #![no_std]
 
 mod gpio;
+mod lsadc;
 mod uart;
