@@ -5,4 +5,5 @@ mod gpio;
 mod i2c;
 mod lsadc;
 mod pwm;
+mod spi;
 mod uart;
