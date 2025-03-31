@@ -1,9 +1,9 @@
 //! SoC peripheral support for Cannan Kendryte chips.
 #![no_std]
 
-mod gpio;
-mod i2c;
-mod lsadc;
-mod pwm;
-mod spi;
-mod uart;
+pub mod gpio;
+pub mod i2c;
+pub mod lsadc;
+pub mod pwm;
+pub mod spi;
+pub mod uart;
