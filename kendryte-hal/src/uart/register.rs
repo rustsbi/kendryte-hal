@@ -1058,7 +1058,7 @@ mod tests {
     use super::*;
     use core::mem::offset_of;
     #[test]
-    fn struct_block_offset() {
+    fn struct_register_block_offset() {
         assert_eq!(offset_of!(RegisterBlock, rbr_thr_dll), 0x00);
         assert_eq!(offset_of!(RegisterBlock, ier_dlh), 0x04);
         assert_eq!(offset_of!(RegisterBlock, iir_fcr), 0x08);
@@ -1697,24 +1697,24 @@ mod tests {
     fn struct_scr_functions() {
         let mut val = Scr(0x0);
 
-        // 测试设置和获取临时存储值 0x11
+        // Test setting and getting scratchpad value 0x11
         val = val.set_scratchpad(0x11);
         assert_eq!(val.0, 0x00000011);
         assert_eq!(val.scratchpad(), 0x11);
 
-        // 测试设置和获取临时存储值 0xFF
+        // Test setting and getting scratchpad value 0xFF
         val = Scr(0x0);
         val = val.set_scratchpad(0xFF);
         assert_eq!(val.0, 0x000000FF);
         assert_eq!(val.scratchpad(), 0xFF);
 
-        // 测试设置和获取临时存储值 0x00
+        // Test setting and getting scratchpad value 0x00
         val = Scr(0x0);
         val = val.set_scratchpad(0x00);
         assert_eq!(val.0, 0x00000000);
         assert_eq!(val.scratchpad(), 0x00);
 
-        // 测试设置和获取临时存储值 0xAA
+        // Test setting and getting scratchpad value 0xAA
         val = Scr(0x0);
         val = val.set_scratchpad(0xAA);
         assert_eq!(val.0, 0x000000AA);
