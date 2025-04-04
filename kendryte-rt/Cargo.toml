@@ -4,3 +4,10 @@ version = "0.0.0"
 edition = "2024"
 
 [dependencies]
+kendryte-hal = { path = "../kendryte-hal" }
+cfg-if = "1.0.0"
+kendryte-rt-macros = { path = "macros" }
+
+[features]
+default = []
+k230 = []

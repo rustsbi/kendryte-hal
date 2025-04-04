@@ -1,0 +1,15 @@
+[package]
+name = "uart-demo"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+panic-halt = "1.0.0"
+kendryte-rt = { path = "../../../kendryte-rt",features = ["k230"]}
+uart16550 = {git = "https://github.com/ZhengLongBing/uart16550.git"}
+
+
+[[bin]]
+name = "uart-demo"
+test = false

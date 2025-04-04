@@ -2,5 +2,7 @@
 members = [
     "kendryte-hal",
     "kendryte-rt",
+    "kendryte-rt/macros",
     "xtask",
+    "examples/peripherals/uart-demo"
 ]
