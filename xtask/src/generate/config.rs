@@ -1,6 +1,6 @@
 //! Configuration constants for K230 firmware encryption and signing.
 
-// Magic bytes for K230 firmware
+// Magic bytes for K230 image
 pub const MAGIC: &str = "K230";
 // Version of the firmware format
 pub const VERSION: &[u8] = &[0, 0, 0, 0];
