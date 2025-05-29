@@ -4,6 +4,7 @@
 pub mod gpio;
 pub mod i2c;
 pub mod instance;
+pub mod iomux;
 pub mod lsadc;
 pub mod pwm;
 pub mod spi;
