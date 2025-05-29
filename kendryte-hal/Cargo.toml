@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 arbitrary-int = "1.3"
 bitbybit = "1.3"
+embedded-time = "0.12.1"
 volatile-register = "0.2.2"
