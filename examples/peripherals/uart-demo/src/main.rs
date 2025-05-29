@@ -1,78 +1,29 @@
 #![no_std]
 #![no_main]
-
-use core::arch::asm;
+use embedded_io::Write;
+use kendryte_hal::uart::*;
 use kendryte_rt::{Clocks, Peripherals, entry};
 use panic_halt as _;
-use uart16550;
-use uart16550::RbrThrDll;
-
-pub struct UART0;
-impl UART0 {
-    pub const fn ptr() -> *mut uart16550::RegisterBlock {
-        0x9140_0000 as *mut _
-    }
-
-    pub const fn instance() -> &'static mut uart16550::RegisterBlock {
-        unsafe { &mut *(Self::ptr()) }
-    }
-}
-
-#[derive(Debug)]
-pub struct Console;
-
-impl core::fmt::Write for Console {
-    fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        for ch in s.as_bytes() {
-            loop {
-                if UART0::instance().lsr.read().is_transmitter_empty() {
-                    let thr = RbrThrDll::default().set_transmitter_data(*ch);
-                    unsafe {
-                        UART0::instance().rbr_thr_dll.write(thr);
-                    }
-                    break;
-                }
-                core::hint::spin_loop();
-            }
-        }
-
-        Ok(())
-    }
-}
-
-#[macro_export]
-macro_rules! println {
-    ($($arg:tt)*) => {
-        {
-            use core::fmt::Write;
-            writeln!(&mut $crate::Console, $($arg)*).unwrap();
-        }
-    };
-    () => {
-        {
-            use core::fmt::Write;
-            writeln!(&mut $crate::Console, "").unwrap();
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => {
-        {
-            use core::fmt::Write;
-            write!(&mut $crate::Console, $($arg)*).unwrap();
-        }
-    };
-}
 
 #[entry]
-fn main(p: Peripherals, _c: Clocks) -> ! {
+fn main(p: Peripherals, c: Clocks) -> ! {
+    let mut serial0 = BlockingUart::new(
+        p.uart0,
+        Some(p.iomux.io38),
+        Some(p.iomux.io39),
+        Config::new(),
+        c,
+    );
+    let mut serial3 = BlockingUart::new(
+        p.uart3,
+        Some(p.iomux.io50),
+        Some(p.iomux.io51),
+        Config::new(),
+        c,
+    );
     loop {
-        println!("Hello, World!");
-        println!("Hello, Rust!");
-        for _ in 0..10000000 {
-            unsafe { asm!("nop") }
-        }
+        writeln!(serial0, "Welcome to use kendryte-hal🦀!").ok();
+        writeln!(serial3, "Welcome to use kendryte-hal🦀!").ok();
+        riscv::asm::delay(10_000_000);
     }
 }
