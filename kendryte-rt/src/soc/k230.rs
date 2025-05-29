@@ -1,28 +1,29 @@
-use crate::soc::PeripheralWrapper;
+use kendryte_hal::instance::{ExclusiveInstance, SharedInstance};
+use kendryte_hal::{clocks::Clocks, gpio, iomux, pad, uart};
 
 #[cfg(all(feature = "k230"))]
-#[naked]
+#[unsafe(naked)]
 #[unsafe(link_section = ".text.entry")]
 #[unsafe(export_name = "_start")]
 unsafe extern "C" fn start() -> ! {
+    use crate::arch::rvi::Stack;
     use crate::soc::main;
     const STACK_SIZE: usize = 32 * 1024;
 
     #[unsafe(link_section = ".bss.uninit")]
-    static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
+    static mut STACK: Stack<STACK_SIZE> = Stack([0; STACK_SIZE]);
 
-    unsafe {
-        core::arch::naked_asm!(
-            // Disable interrupt
-            "csrw   mie, zero",
+    core::arch::naked_asm!(
+        // Disable interrupt
+        "csrw   mie, zero",
 
-            // Prepare programming language stack
-            "la     sp, {stack}
+        // Prepare programming language stack
+        "la     sp, {stack}
              li     t0, {stack_size}
              add    sp, sp, t0",
 
-            // Clear `.bss` section
-            "la     t1, sbss
+        // Clear `.bss` section
+        "la     t1, sbss
              la     t2, ebss
          1:  bgeu   t1, t2, 2f
              sw     zero, 0(t1)
@@ -30,104 +31,47 @@ unsafe extern "C" fn start() -> ! {
              j      1b
          2:",
 
-            // Start Rust main function
-            "call   {main}",
+        // Start Rust main function
+        "call   {main}",
 
-            // Platform halt if main function returns
-            "
+        // Platform halt if main function returns
+        "
          3:  wfi
              j    3b",
 
-            stack      = sym STACK,
-            stack_size = const STACK_SIZE,
-            main       = sym main,
-        )
-    }
+        stack      = sym STACK,
+        stack_size = const STACK_SIZE,
+        main       = sym main,
+    )
 }
-
-pub type UART0 = PeripheralWrapper<0x9140_0000, kendryte_hal::uart::RegisterBlock>;
-pub type UART1 = PeripheralWrapper<0x9140_1000, kendryte_hal::uart::RegisterBlock>;
-pub type UART2 = PeripheralWrapper<0x9140_2000, kendryte_hal::uart::RegisterBlock>;
-pub type UART3 = PeripheralWrapper<0x9140_3000, kendryte_hal::uart::RegisterBlock>;
-pub type UART4 = PeripheralWrapper<0x9140_4000, kendryte_hal::uart::RegisterBlock>;
-pub type I2C0 = PeripheralWrapper<0x9140_5000, kendryte_hal::i2c::RegisterBlock>;
-pub type I2C1 = PeripheralWrapper<0x9140_6000, kendryte_hal::i2c::RegisterBlock>;
-pub type I2C2 = PeripheralWrapper<0x9140_7000, kendryte_hal::i2c::RegisterBlock>;
-pub type I2C3 = PeripheralWrapper<0x9140_8000, kendryte_hal::i2c::RegisterBlock>;
-pub type I2C4 = PeripheralWrapper<0x9140_9000, kendryte_hal::i2c::RegisterBlock>;
-pub type PWM = PeripheralWrapper<0x9140_A000, kendryte_hal::pwm::RegisterBlock>;
-pub type GPIO0 = PeripheralWrapper<0x9140_B000, kendryte_hal::gpio::RegisterBlock>;
-pub type GPIO1 = PeripheralWrapper<0x9140_C000, kendryte_hal::gpio::RegisterBlock>;
-pub type LSADC = PeripheralWrapper<0x9140_D000, kendryte_hal::lsadc::RegisterBlock>;
 
 /// Peripherals available on ROM start.
 pub struct Peripherals {
-    pub uart0: UART0,
-    pub uart1: UART1,
-    pub uart2: UART2,
-    pub uart3: UART3,
-    pub uart4: UART4,
-    pub i2c0: I2C0,
-    pub i2c1: I2C1,
-    pub i2c2: I2C2,
-    pub i2c3: I2C3,
-    pub i2c4: I2C4,
-    pub pwm: PWM,
-    pub gpio0: GPIO0,
-    pub gpio1: GPIO1,
-    pub lsadc: LSADC,
+    pub iomux: pad::pads::Pads,
+    pub gpio0: &'static gpio::Instance<0>,
+    pub gpio1: &'static gpio::Instance<1>,
+    pub uart0: &'static mut uart::Instance<0>,
+    pub uart1: &'static mut uart::Instance<1>,
+    pub uart2: &'static mut uart::Instance<2>,
+    pub uart3: &'static mut uart::Instance<3>,
+    pub uart4: &'static mut uart::Instance<4>,
 }
-
-pub struct Clocks();
 
 // Used by macros only.
 #[allow(unused)]
 #[doc(hidden)]
 #[inline(always)]
 pub fn __rom_init_params() -> (Peripherals, Clocks) {
+    let iomux = unsafe { iomux::Instance::transmute_at(0x9110_5000) };
     let peripherals = Peripherals {
-        uart0: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        uart1: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        uart2: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        uart3: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        uart4: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        i2c0: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        i2c1: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        i2c2: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        i2c3: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        i2c4: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        pwm: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        gpio0: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        gpio1: PeripheralWrapper {
-            _marker: Default::default(),
-        },
-        lsadc: PeripheralWrapper {
-            _marker: Default::default(),
-        },
+        iomux: pad::pads::Pads::new(iomux.inner_mut()),
+        gpio0: unsafe { gpio::Instance::<0>::transmute_at(0x9140_B000) },
+        gpio1: unsafe { gpio::Instance::<1>::transmute_at(0x9140_C000) },
+        uart0: unsafe { uart::Instance::<0>::transmute_at(0x9140_0000) },
+        uart1: unsafe { uart::Instance::<1>::transmute_at(0x9140_1000) },
+        uart2: unsafe { uart::Instance::<2>::transmute_at(0x9140_2000) },
+        uart3: unsafe { uart::Instance::<3>::transmute_at(0x9140_3000) },
+        uart4: unsafe { uart::Instance::<4>::transmute_at(0x9140_4000) },
     };
-    (peripherals, Clocks())
+    (peripherals, Clocks)
 }
