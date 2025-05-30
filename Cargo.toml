@@ -4,5 +4,6 @@ members = [
     "kendryte-rt",
     "kendryte-rt/macros",
     "xtask",
-    "examples/peripherals/uart-demo"
+    "examples/peripherals/uart-demo",
+    "examples/peripherals/gpio-blinky-demo"
 ]
