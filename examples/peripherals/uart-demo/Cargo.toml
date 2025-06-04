@@ -6,9 +6,10 @@ publish = false
 
 [dependencies]
 panic-halt = "1.0.0"
+kendryte-hal = { path = "../../../kendryte-hal"}
 kendryte-rt = { path = "../../../kendryte-rt",features = ["k230"]}
-uart16550 = {git = "https://github.com/ZhengLongBing/uart16550.git"}
-
+embedded-io = "0.6.1"
+riscv = "0.13.0"
 
 [[bin]]
 name = "uart-demo"
