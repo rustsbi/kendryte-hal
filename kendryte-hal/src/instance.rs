@@ -5,8 +5,7 @@ pub trait SharedInstance {
         Self: Sized,
         Self::Target: Sized,
     {
-        let register_block: &'static Self::Target = unsafe { &*(addr as *mut Self::Target) };
-        unsafe { core::mem::transmute(register_block) }
+        unsafe { &*(addr as *const Self::Target as *const Self) }
     }
 
     fn inner(&self) -> &'static Self::Target
@@ -14,7 +13,7 @@ pub trait SharedInstance {
         Self: Sized,
         Self::Target: Sized,
     {
-        unsafe { core::mem::transmute(self) }
+        unsafe { &*(self as *const Self as *const Self::Target) }
     }
 }
 
@@ -25,9 +24,7 @@ pub trait ExclusiveInstance {
         Self: Sized,
         Self::Target: Sized,
     {
-        let register_block: &'static mut Self::Target =
-            unsafe { &mut *(addr as *mut Self::Target) };
-        unsafe { core::mem::transmute(register_block) }
+        unsafe { &mut *(addr as *mut Self::Target as *mut Self) }
     }
 
     fn inner(&self) -> &'static Self::Target
@@ -35,7 +32,7 @@ pub trait ExclusiveInstance {
         Self: Sized,
         Self::Target: Sized,
     {
-        unsafe { core::mem::transmute(self) }
+        unsafe { &*(self as *const Self as *const Self::Target) }
     }
 
     fn inner_mut(&mut self) -> &'static mut Self::Target
@@ -43,6 +40,6 @@ pub trait ExclusiveInstance {
         Self: Sized,
         Self::Target: Sized,
     {
-        unsafe { core::mem::transmute(self) }
+        unsafe { &mut *(self as *mut Self as *mut Self::Target) }
     }
 }

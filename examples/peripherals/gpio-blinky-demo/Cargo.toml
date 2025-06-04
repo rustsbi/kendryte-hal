@@ -1,0 +1,15 @@
+[package]
+name = "gpio-blinky-demo"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+panic-halt = "1.0.0"
+kendryte-hal = { path = "../../../kendryte-hal"}
+kendryte-rt = { path = "../../../kendryte-rt",features = ["k230"]}
+riscv = "0.13.0"
+
+[[bin]]
+name = "gpio-blinky-demo"
+test = false
