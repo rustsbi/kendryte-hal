@@ -1,6 +1,6 @@
 //! SoC peripheral support for Cannan Kendryte chips.
 #![no_std]
-
+#![allow(unused)]
 pub mod clocks;
 pub mod gpio;
 pub mod i2c;
