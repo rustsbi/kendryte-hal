@@ -150,7 +150,13 @@ pub struct PwmCfg {
     #[bit(31, rw)]
     pub pwm_cmp3_ip: bool,
 }
-
+#[bitfield(u32)]
+pub struct Pwms {
+    #[bits(0..=15, rw)]
+    pub pwms: u16,
+    #[bits(16..=31, r)]
+    _reserved: u16,
+}
 #[repr(C)]
 pub struct RegisterBlock {
     /// PWM configuration register.
