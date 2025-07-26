@@ -7,7 +7,6 @@ pub mod i2c;
 pub mod instance;
 pub mod iomux;
 pub mod lsadc;
-pub mod pad;
 pub mod pwm;
 pub mod spi;
 pub mod uart;

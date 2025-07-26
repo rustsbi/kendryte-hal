@@ -1,52 +1,54 @@
-use crate::gpio::{Direction, Instance, RegisterBlock};
-use crate::instance::SharedInstance;
-use crate::pad::function::gpio::{GpioFunction, Port};
-use crate::pad::pad_ops::{PadOps, Pull};
-use crate::pad::{FlexPad, Pad};
+use crate::gpio::pad::{IntoGpio, Port};
+use crate::gpio::{Direction, RegisterBlock};
+use crate::instance::Numbered;
+use crate::iomux::FlexPad;
+use crate::iomux::ops::{PadOps, Pull};
 use core::convert::Infallible;
+use core::marker::PhantomData;
 use embedded_hal::digital::{ErrorType, InputPin, PinState};
 
 /// Represents a GPIO input pin.
-pub struct Input<'pad> {
+pub struct Input<'i, 'p> {
     inner: &'static RegisterBlock,
-    pad: &'pad mut FlexPad,
+    pad: FlexPad<'p>,
     port: Port,
     pin_num: usize,
+    _marker: PhantomData<&'i ()>,
 }
 
-impl<'pad> Input<'pad> {
+impl<'i, 'p> Input<'i, 'p> {
     /// Creates a new Input instance for a specific pad and GPIO port.
-    pub fn new<const PAD_NUM: usize, const GPIO_NUM: usize>(
-        instance: &Instance<GPIO_NUM>,
-        pad: &'pad mut Pad<PAD_NUM>,
+    pub fn new<const N: usize, P>(
+        instance: impl Numbered<'i, N, R = RegisterBlock>,
+        pad: P,
         pull: Pull,
     ) -> Self
     where
-        Pad<PAD_NUM>: GpioFunction<GPIO_NUM>,
+        P: PadOps + IntoGpio<'p, N>,
     {
-        pad.set_gpio_function();
+        let mut pad = pad.into_gpio();
         pad.set_pull(pull);
-        let port = <Pad<PAD_NUM> as GpioFunction<GPIO_NUM>>::PORT;
-        let pin_num = <Pad<PAD_NUM> as GpioFunction<GPIO_NUM>>::PIN_NUM;
+        let port = <P as IntoGpio<N>>::PORT;
+        let pin_num = <P as IntoGpio<N>>::PIN_NUM;
+        let inner = instance.inner();
 
         unsafe {
             match port {
-                Port::A => instance
-                    .inner()
+                Port::A => inner
                     .swporta_ddr
                     .modify(|r| r.with_direction(pin_num, Direction::Input)),
-                Port::B => instance
-                    .inner()
+                Port::B => inner
                     .swportb_ddr
                     .modify(|r| r.with_direction(pin_num, Direction::Input)),
             }
         }
 
         Self {
-            inner: instance.inner(),
-            pad: pad.as_flexible_mut(),
+            inner,
+            pad,
             port,
             pin_num,
+            _marker: PhantomData,
         }
     }
 
@@ -69,11 +71,11 @@ impl<'pad> Input<'pad> {
     }
 }
 
-impl<'pad> ErrorType for Input<'pad> {
+impl<'i, 'p> ErrorType for Input<'i, 'p> {
     type Error = Infallible;
 }
 
-impl<'pad> InputPin for Input<'pad> {
+impl<'i, 'p> InputPin for Input<'i, 'p> {
     fn is_high(&mut self) -> Result<bool, Self::Error> {
         match self.port {
             Port::A => {
