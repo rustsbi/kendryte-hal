@@ -200,16 +200,16 @@ pub struct Pwms {
 #[repr(C)]
 pub struct RegisterBlock {
     /// PWM configuration register.
-    pub pwmcfg: RW<u32>,
+    pub pwm_cfg: RW<PwmCfg>,
     _reverser0: [u8; 0x04],
     /// PWM counter count value register.
-    pub pwmcount: RW<u32>,
+    pub pwm_count: RW<u32>,
     _reverser1: [u8; 0x04],
     /// PWM counter is relatively straight register.
     pub pwms: RW<u32>,
     _reverser2: [u8; 0x0C],
     /// PWM comparator register N.
-    pub pwmcmpn: [RW<u32>; 4],
+    pub pwm_cmpn: [RW<u32>; 4],
 }
 
 #[cfg(test)]
@@ -219,9 +219,9 @@ mod tests {
 
     #[test]
     fn struct_register_block_offset() {
-        assert_eq!(offset_of!(RegisterBlock, pwmcfg), 0x00);
-        assert_eq!(offset_of!(RegisterBlock, pwmcount), 0x08);
+        assert_eq!(offset_of!(RegisterBlock, pwm_cfg), 0x00);
+        assert_eq!(offset_of!(RegisterBlock, pwm_count), 0x08);
         assert_eq!(offset_of!(RegisterBlock, pwms), 0x10);
-        assert_eq!(offset_of!(RegisterBlock, pwmcmpn), 0x20);
+        assert_eq!(offset_of!(RegisterBlock, pwm_cmpn), 0x20);
     }
 }
