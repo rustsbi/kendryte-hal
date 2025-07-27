@@ -1,8 +1,48 @@
 use arbitrary_int::{u2, u4};
-use bitbybit::bitfield;
+use bitbybit::{bitenum, bitfield};
 use volatile_register::{RO, RW};
 
 // These definitions are from the K230 Technical Reference Manual V0.3.1_20241118 Chapter 12.8.5
+
+/// Defines the behavior of the interrupt pending bits.
+#[bitenum(u1, exhaustive = true)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum StickyMode {
+    /// Interrupt pending bits are cleared automatically when the condition is no longer true.
+    AutoClear = 0b0,
+    /// Interrupt pending bits must be cleared by writing a 1 to them.
+    ManualClear = 0b1,
+}
+
+/// Generic enable/disable enum for single-bit flags.
+#[bitenum(u1, exhaustive = true)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum Enable {
+    /// The feature is disabled.
+    Disabled = 0b0,
+    /// The feature is enabled.
+    Enabled = 0b1,
+}
+
+/// Defines the alignment of the PWM output.
+#[bitenum(u1, exhaustive = true)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum Alignment {
+    /// The PWM output is left-aligned.
+    Left = 0b0,
+    /// The PWM output is center-aligned.
+    Center = 0b1,
+}
+
+/// Represents the state of an interrupt pending flag.
+#[bitenum(u1, exhaustive = true)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum InterruptPending {
+    /// No interrupt is pending.
+    NotPending = 0b0,
+    /// An interrupt is pending.
+    Pending = 0b1,
+}
 
 /// PWM configuration register (PWM_CFG)
 ///
@@ -24,14 +64,14 @@ pub struct PwmCfg {
     ///
     /// The pwmsticky bit will disallow the pwmcmpXip registers from clearing if they’re already set, and is used to ensure interrupts are seen from the pwmcmpXip bits.
     #[bit(8, rw)]
-    pub pwm_sticky: bool,
+    pub pwm_sticky: StickyMode,
     /// PWM zero compare bit (bit 9):
     ///
     /// The pwmzerocmp bit, if set, causes the PWM counter pwmcount to be automatically reset to zero one cycle after the pwms counter value matches the compare value in pwmcmp0.
     /// This is normally used to set the period of the PWM cycle.
     /// This feature can also be used to implement periodic counter interrupts, where the period is independent of interrupt service time.
     #[bit(9, rw)]
-    pub pwm_zero_cmp: bool,
+    pub pwm_zero_cmp: Enable,
     /// PWM deglitch bit (bit 10):
     ///
     /// To avoid glitches in the PWM waveforms when changing pwmcmpX register values, the pwmdeglitch bit in pwmcfg can be set to capture any high output of a PWM comparator in a sticky bit(pwmcmpXip for comparator X) and prevent the output falling again within the same PWM cycle.
@@ -39,7 +79,7 @@ pub struct PwmCfg {
     /// Note the pwmcmp0ip bit will only be high for one cycle when pwmdeglitch and pwmzerocmp are set where pwmcmp0 is used to define the PWM cycle, but can be used as a regular PWM edge otherwise.
     /// If pwmdeglitch is set, but pwmzerocmp is clear, the deglitch circuit is still operational but is now triggered when pwms contains all 1s and will cause a carry out of the high bit of the pwms incrementer just before the counter wraps to zero.
     #[bit(10, rw)]
-    pub pwm_deglitch: bool,
+    pub pwm_deglitch: Enable,
     /// Reserved (bit 11):
     #[bit(11, r)]
     _reserved1: bool,
@@ -49,7 +89,7 @@ pub struct PwmCfg {
     /// The counter increments by one each cycle only if any of the enabled conditions are true.
     /// If the pwmenalways bit is set, the PWM counter increments continuously.
     #[bit(12, rw)]
-    pub pwm_en_always: bool,
+    pub pwm_en_always: Enable,
     /// PWM one-shot enable (bit 13):
     ///
     /// The pwmenbits control the conditions under which the PWM counter pwmcount is incremented.
@@ -59,7 +99,7 @@ pub struct PwmCfg {
     /// Software can set the pwnenoneshot again at any time to replay the one-shot waveform.
     /// The pwmen bits are reset at wakeup reset, which disables the PWM counter and saves power.
     #[bit(13, rw)]
-    pub pwm_en_oneshot: bool,
+    pub pwm_en_oneshot: Enable,
     /// Reserved (bits 14-15):
     #[bits(14..=15, r)]
     _reserved2: u2,
@@ -69,22 +109,22 @@ pub struct PwmCfg {
     ///
     /// A per-comparator pwmcmp0center bit in pwmcfg allows a single PWM comparator to generate a center-aligned symmetric duty-cycle
     #[bit(16, rw)]
-    pub pwm_cmp0_center: bool,
+    pub pwm_cmp0_center: Alignment,
     /// PWM compare 1 center alignment (bit 17):
     ///
     /// A per-comparator pwmcmp1center bit in pwmcfg allows a single PWM comparator to generate a center-aligned symmetric duty-cycle
     #[bit(17, rw)]
-    pub pwm_cmp1_center: bool,
+    pub pwm_cmp1_center: Alignment,
     /// PWM compare 2 center alignment (bit 18):
     ///
     /// A per-comparator pwmcmp2center bit in pwmcfg allows a single PWM comparator to generate a center-aligned symmetric duty-cycle
     #[bit(18, rw)]
-    pub pwm_cmp2_center: bool,
+    pub pwm_cmp2_center: Alignment,
     /// PWM compare 3 center alignment (bit 19):
     ///
     /// A per-comparator pwmcmp3center bit in pwmcfg allows a single PWM comparator to generate a center-aligned symmetric duty-cycle
     #[bit(19, rw)]
-    pub pwm_cmp3_center: bool,
+    pub pwm_cmp3_center: Alignment,
     /// Reserved (bits 20-23):
     #[bits(20..=23, r)]
     _reserved3: u4,
@@ -96,28 +136,28 @@ pub struct PwmCfg {
     /// When the pwmcmp0gang bit is set, comparator 0 fires and raises its pwm0gpio signal.
     /// When comparator 0 + 1 (or pwmcmp0 for pwmcmp3) fires, the pwm0gpio output is reset to zero.
     #[bit(24, rw)]
-    pub pwm_cmp0_gang: bool,
+    pub pwm_cmp0_gang: Enable,
     /// PWM compare 1 gang enable (bit 25):
     ///
     ///A comparator can be ganged together with its next-highest-numbered neighbor to generate arbitrary PWM pulses.
     /// When the pwmcmp1gang bit is set, comparator 1 fires and raises its pwm1gpio signal.
     /// When comparator 1 + 1 (or pwmcmp0 for pwmcmp3) fires, the pwm1gpio output is reset to zero.
     #[bit(25, rw)]
-    pub pwm_cmp1_gang: bool,
+    pub pwm_cmp1_gang: Enable,
     /// PWM compare 2 gang enable (bit 26):
     ///
     /// A comparator can be ganged together with its next-highest-numbered neighbor to generate arbitrary PWM pulses.
     /// When the pwmcmp2gang bit is set, comparator 2 fires and raises its pwm2gpio signal.
     /// When comparator 2 + 1 (or pwmcmp0 for pwmcmp3) fires, the pwm2gpio output is reset to zero.
     #[bit(26, rw)]
-    pub pwm_cmp2_gang: bool,
+    pub pwm_cmp2_gang: Enable,
     /// PWM compare 3 gang enable (bit 27):
     ///
     /// A comparator can be ganged together with its next-highest-numbered neighbor to generate arbitrary PWM pulses.
     /// When the pwmcmp3gang bit is set, comparator 3 fires and raises its pwm3gpio signal.
     /// When comparator 3 + 1 (or pwmcmp0 for pwmcmp3) fires, the pwm3gpio output is reset to zero.
     #[bit(27, rw)]
-    pub pwm_cmp3_gang: bool,
+    pub pwm_cmp3_gang: Enable,
 
     // Interrupt pending bits
     /// PWM compare 0 interrupt pending (bit 28):
@@ -127,28 +167,28 @@ pub struct PwmCfg {
     /// The interrupt pending bits pwmcmp0ip can be cleared down using writes to the pwmcfg register.
     /// The PWM peripheral can also be used as a regular timer with no counter reset (pwmzerocmp=0), where the comparators are now used to provide timer interrupts.
     #[bit(28, rw)]
-    pub pwm_cmp0_ip: bool,
+    pub pwm_cmp0_ip: InterruptPending,
     /// PWM compare 1 interrupt pending (bit 29):
     ///
     /// The interrupt pending bits pwmcmp1ip The pwmcmp1ip bits are only allowed to change at the start of the next PWM cycle.
     /// The interrupt pending bits pwmcmp1ip can be cleared down using writes to the pwmcfg register.
     /// The PWM peripheral can also be used as a regular timer with no counter reset (pwmzerocmp=0), where the comparators are now used to provide timer interrupts.
     #[bit(29, rw)]
-    pub pwm_cmp1_ip: bool,
+    pub pwm_cmp1_ip: InterruptPending,
     /// PWM compare 2 interrupt pending (bit 30):
     ///
     /// The interrupt pending bits pwmcmp2ip The pwmcmp2ip bits are only allowed to change at the start of the next PWM cycle.
     /// The interrupt pending bits pwmcmp2ip can be cleared down using writes to the pwmcfg register.
     /// The PWM peripheral can also be used as a regular timer with no counter reset (pwmzerocmp=0), where the comparators are now used to provide timer interrupts.
     #[bit(30, rw)]
-    pub pwm_cmp2_ip: bool,
+    pub pwm_cmp2_ip: InterruptPending,
     /// PWM compare 3 interrupt pending (bit 31):
     ///
     ///The interrupt pending bits pwmcmp3ip The pwmcmp3ip bits are only allowed to change at the start of the next PWM cycle.
     /// The interrupt pending bits pwmcmp3ip can be cleared down using writes to the pwmcfg register.
     /// The PWM peripheral can also be used as a regular timer with no counter reset (pwmzerocmp=0), where the comparators are now used to provide timer interrupts.
     #[bit(31, rw)]
-    pub pwm_cmp3_ip: bool,
+    pub pwm_cmp3_ip: InterruptPending,
 }
 #[bitfield(u32)]
 pub struct Pwms {
