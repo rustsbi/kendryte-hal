@@ -184,7 +184,7 @@ pub struct PwmCfg {
     pub pwm_cmp2_ip: InterruptPending,
     /// PWM compare 3 interrupt pending (bit 31):
     ///
-    ///The interrupt pending bits pwmcmp3ip The pwmcmp3ip bits are only allowed to change at the start of the next PWM cycle.
+    /// The interrupt pending bits pwmcmp3ip The pwmcmp3ip bits are only allowed to change at the start of the next PWM cycle.
     /// The interrupt pending bits pwmcmp3ip can be cleared down using writes to the pwmcfg register.
     /// The PWM peripheral can also be used as a regular timer with no counter reset (pwmzerocmp=0), where the comparators are now used to provide timer interrupts.
     #[bit(31, rw)]
@@ -194,7 +194,12 @@ pub struct PwmCfg {
 #[bitfield(u32)]
 pub struct PwmCount {
     #[bits(0..=30, rw)]
+    ///The PWM unit is based around a counter held in pwmcount.
+    /// The counter can be read or written over the bus.
+    /// The pwmcount register is (15 + cmpwidth) 30:0 R/W counter 0x0 bits wide.
+    /// For example, for cmpwidth of 16 bits, the counter is held in pwmcount[30:0], and bit 31 of pwmcount returns a zero when read.
     pub counter: u31,
+    /// Reserved (bit 31).
     #[bit(31, r)]
     pub _reserved: bool,
 }
@@ -202,15 +207,21 @@ pub struct PwmCount {
 #[bitfield(u32)]
 pub struct Pwms {
     #[bits(0..=15, rw)]
+    ///The value of pwms is memory-mapped and can be read as a single 15:0 R/W pwms 0x0 cmpwidth-bit value over the bus.
     pub pwms: u16,
     #[bits(16..=31, r)]
+    /// Reserved (bits 16-31).
     _reserved: u16,
 }
 
 #[bitfield(u32)]
 pub struct PwmCmpn {
     #[bits(0..=30, rw)]
+    /// The primary use of the ncmp PWM compare registers is to define the edges of the PWM waveforms within the PWM cycle.
+    /// PWM_CMPN Each compare register is a cmpwidth-bit value against which the current 30:0 R/W 0x0 (N=0,1,2,3) pwms value is compared every cycle.
+    /// The output of each comparator is high whenever the value of pwms is greater than or equal to the corresponding pwmcmpN.
     pub pwm_cpmn: u31,
+    /// Reserved (bit 31).
     #[bit(31, r)]
     pub _reserved: bool,
 }
