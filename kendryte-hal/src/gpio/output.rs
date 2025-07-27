@@ -1,8 +1,8 @@
 use crate::gpio::pad::{IntoGpio, Port};
-use crate::gpio::{Direction, RegisterBlock};
+use crate::gpio::{Direction, Input, RegisterBlock};
 use crate::instance::Numbered;
 use crate::iomux::FlexPad;
-use crate::iomux::ops::PadOps;
+use crate::iomux::ops::{PadOps, Pull};
 use crate::iomux::pad::Strength;
 use arbitrary_int::u4;
 use core::convert::Infallible;
@@ -11,11 +11,11 @@ use embedded_hal::digital::{ErrorType, OutputPin, PinState, StatefulOutputPin};
 
 /// Represents a GPIO output pin.
 pub struct Output<'i, 'p> {
-    inner: &'static RegisterBlock,
-    pad: FlexPad<'p>,
-    port: Port,
-    pin_num: usize,
-    _marker: PhantomData<&'i ()>,
+    pub(crate) inner: &'static RegisterBlock,
+    pub(crate) pad: FlexPad<'p>,
+    pub(crate) port: Port,
+    pub(crate) pin_num: usize,
+    pub(crate) _marker: PhantomData<&'i ()>,
 }
 
 impl<'i, 'p> Output<'i, 'p> {
@@ -69,6 +69,45 @@ impl<'i, 'p> Output<'i, 'p> {
             Port::A => self.inner.swporta_dr.read().pin_state(self.pin_num).into(),
             Port::B => self.inner.swportb_dr.read().pin_state(self.pin_num).into(),
         }
+    }
+    /// Converts the pin into an input pin with specified pull configuration.
+    pub fn into_input(self, pull: Pull) -> Input<'i, 'p> {
+        self.pad.set_pull(pull);
+        unsafe {
+            match self.port {
+                Port::A => self
+                    .inner
+                    .swporta_ddr
+                    .modify(|r| r.with_direction(self.pin_num, Direction::Input)),
+                Port::B => self
+                    .inner
+                    .swportb_ddr
+                    .modify(|r| r.with_direction(self.pin_num, Direction::Input)),
+            }
+        }
+
+        Input {
+            inner: self.inner,
+            pad: self.pad,
+            port: self.port,
+            pin_num: self.pin_num,
+            _marker: PhantomData,
+        }
+    }
+
+    /// Converts the pin into an input pin with pull-up resistor enabled.
+    pub fn into_pull_up_input(self) -> Input<'i, 'p> {
+        self.into_input(Pull::Up)
+    }
+
+    /// Converts the pin into an input pin with pull-down resistor enabled.
+    pub fn into_pull_down_input(self) -> Input<'i, 'p> {
+        self.into_input(Pull::Down)
+    }
+
+    /// Converts the pin into a floating input pin with no pull resistors.
+    pub fn into_floating_input(self) -> Input<'i, 'p> {
+        self.into_input(Pull::None)
     }
 }
 
