@@ -1,4 +1,4 @@
-use arbitrary_int::{u2, u4};
+use arbitrary_int::{u2, u4, u31};
 use bitbybit::{bitenum, bitfield};
 use volatile_register::{RO, RW};
 
@@ -190,6 +190,15 @@ pub struct PwmCfg {
     #[bit(31, rw)]
     pub pwm_cmp3_ip: InterruptPending,
 }
+
+#[bitfield(u32)]
+pub struct PwmCount {
+    #[bits(0..=30, rw)]
+    pub counter: u31,
+    #[bit(31, r)]
+    pub _reserved: bool,
+}
+
 #[bitfield(u32)]
 pub struct Pwms {
     #[bits(0..=15, rw)]
@@ -197,19 +206,28 @@ pub struct Pwms {
     #[bits(16..=31, r)]
     _reserved: u16,
 }
+
+#[bitfield(u32)]
+pub struct PwmCmpn {
+    #[bits(0..=30, rw)]
+    pub pwm_cpmn: u31,
+    #[bit(31, r)]
+    pub _reserved: bool,
+}
+
 #[repr(C)]
 pub struct RegisterBlock {
     /// PWM configuration register.
     pub pwm_cfg: RW<PwmCfg>,
     _reverser0: [u8; 0x04],
     /// PWM counter count value register.
-    pub pwm_count: RW<u32>,
+    pub pwm_count: RW<PwmCount>,
     _reverser1: [u8; 0x04],
     /// PWM counter is relatively straight register.
-    pub pwms: RW<u32>,
+    pub pwms: RW<Pwms>,
     _reverser2: [u8; 0x0C],
     /// PWM comparator register N.
-    pub pwm_cmpn: [RW<u32>; 4],
+    pub pwm_cmpn: [RW<PwmCmpn>; 4],
 }
 
 #[cfg(test)]
