@@ -2,9 +2,8 @@
 #![no_main]
 
 use kendryte_hal::gpio::{Output, PinState, StatefulOutputPin};
+use kendryte_hal::iomux::pad::Strength;
 use kendryte_rt::{Clocks, Peripherals, entry};
-
-use kendryte_hal::iomux::Strength;
 use panic_halt as _;
 
 #[entry]

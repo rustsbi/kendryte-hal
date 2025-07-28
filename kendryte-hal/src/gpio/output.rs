@@ -1,65 +1,65 @@
-use crate::gpio::{Direction, Instance, RegisterBlock};
-use crate::instance::SharedInstance;
-use crate::iomux::Strength;
-use crate::pad::function::gpio::{GpioFunction, Port};
-use crate::pad::pad_ops::PadOps;
-use crate::pad::{FlexPad, Pad};
+use crate::gpio::pad::{IntoGpio, Port};
+use crate::gpio::{Direction, RegisterBlock};
+use crate::instance::Numbered;
+use crate::iomux::FlexPad;
+use crate::iomux::ops::PadOps;
+use crate::iomux::pad::Strength;
 use arbitrary_int::u4;
 use core::convert::Infallible;
+use core::marker::PhantomData;
 use embedded_hal::digital::{ErrorType, OutputPin, PinState, StatefulOutputPin};
 
 /// Represents a GPIO output pin.
-pub struct Output<'pad> {
+pub struct Output<'i, 'p> {
     inner: &'static RegisterBlock,
-    pad: &'pad mut FlexPad,
+    pad: FlexPad<'p>,
     port: Port,
     pin_num: usize,
+    _marker: PhantomData<&'i ()>,
 }
 
-impl<'pad> Output<'pad> {
+impl<'i, 'p> Output<'i, 'p> {
     /// Creates a new Output instance for a specific pad and GPIO port.
-    pub fn new<const PAD_NUM: usize, const GPIO_NUM: usize>(
-        instance: &Instance<GPIO_NUM>,
-        pad: &'pad mut Pad<PAD_NUM>,
+    pub fn new<const N: usize, P>(
+        instance: impl Numbered<'i, N, R = RegisterBlock>,
+        pad: P,
         pin_state: PinState,
         drive_strength: Strength,
     ) -> Self
     where
-        Pad<PAD_NUM>: GpioFunction<GPIO_NUM>,
+        P: PadOps + IntoGpio<'p, N>,
     {
-        pad.set_gpio_function();
+        let mut pad = pad.into_gpio();
         pad.set_drive_strength(drive_strength);
-        let port = <Pad<PAD_NUM> as GpioFunction<GPIO_NUM>>::PORT;
-        let pin_num = <Pad<PAD_NUM> as GpioFunction<GPIO_NUM>>::PIN_NUM;
+        let port = <P as IntoGpio<N>>::PORT;
+        let pin_num = <P as IntoGpio<N>>::PIN_NUM;
+        let inner = instance.inner();
 
         match port {
             Port::A => unsafe {
-                instance
-                    .inner()
+                inner
                     .swporta_ddr
                     .modify(|r| r.with_direction(pin_num, Direction::Output));
-                instance
-                    .inner()
+                inner
                     .swporta_dr
                     .modify(|r| r.with_pin_state(pin_num, pin_state.into()))
             },
             Port::B => unsafe {
-                instance
-                    .inner()
+                inner
                     .swportb_ddr
                     .modify(|r| r.with_direction(pin_num, Direction::Output));
-                instance
-                    .inner()
+                inner
                     .swportb_dr
                     .modify(|r| r.with_pin_state(pin_num, pin_state.into()))
             },
         }
 
         Self {
-            inner: instance.inner(),
-            pad: pad.as_flexible_mut(),
+            inner,
+            pad,
             port,
             pin_num,
+            _marker: PhantomData,
         }
     }
 
@@ -72,11 +72,11 @@ impl<'pad> Output<'pad> {
     }
 }
 
-impl<'pad> ErrorType for Output<'pad> {
+impl<'i, 'p> ErrorType for Output<'i, 'p> {
     type Error = Infallible;
 }
 
-impl<'pad> OutputPin for Output<'pad> {
+impl<'i, 'p> OutputPin for Output<'i, 'p> {
     fn set_low(&mut self) -> Result<(), Self::Error> {
         match self.port {
             Port::A => unsafe {
@@ -110,7 +110,7 @@ impl<'pad> OutputPin for Output<'pad> {
     }
 }
 
-impl<'pad> StatefulOutputPin for Output<'pad> {
+impl<'i, 'p> StatefulOutputPin for Output<'i, 'p> {
     fn is_set_high(&mut self) -> Result<bool, Self::Error> {
         Ok(self.pin_state() == PinState::High)
     }
