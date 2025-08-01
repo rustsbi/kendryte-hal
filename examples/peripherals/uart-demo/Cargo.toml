@@ -8,8 +8,8 @@ publish = false
 
 [dependencies]
 panic-halt = "1.0.0"
-kendryte-hal = { path = "../../../kendryte-hal"}
-kendryte-rt = { path = "../../../kendryte-rt",features = ["k230"]}
+kendryte-hal = { path = "../../../kendryte-hal" }
+kendryte-rt = { path = "../../../kendryte-rt", features = ["k230"] }
 embedded-io = "0.6.1"
 riscv = "0.13.0"
 

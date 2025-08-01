@@ -7,13 +7,13 @@ use crate::generate::config::{
 };
 use aes_gcm::{AeadInPlace, Aes256Gcm, Key, KeyInit, Nonce, Tag};
 use cbc::cipher::KeyIvInit;
-use cipher::block_padding::Pkcs7;
 use cipher::BlockEncryptMut;
+use cipher::block_padding::Pkcs7;
 use num_bigint_dig::BigUint;
 use primeorder::PrimeCurveParams;
+use rsa::RsaPrivateKey;
 use rsa::pkcs1v15::SigningKey;
 use rsa::signature::{SignatureEncoding, Signer};
-use rsa::RsaPrivateKey;
 use sha2::{Digest, Sha256};
 use sm2::elliptic_curve::ScalarPrimitive;
 use sm2::{FieldBytes, Scalar, SecretKey, Sm2};
@@ -304,7 +304,7 @@ fn prepare_id_info() -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use crate::generate::image::{gen_image, EncryptionType};
+    use crate::generate::image::{EncryptionType, gen_image};
     use sha2::{Digest, Sha256};
 
     fn assert_hashes_match(actual: &[u8], expected: &[u8]) {

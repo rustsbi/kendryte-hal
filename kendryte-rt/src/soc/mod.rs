@@ -1,5 +1,5 @@
-pub mod k230;
+//! System on Chip (SoC) modules for Kendryte chips.
 
-unsafe extern "Rust" {
-    fn main() -> !;
-}
+pub mod k230;
+// TODO pub mod k510;
+// TODO pub mod k210;
