@@ -1,111 +1,56 @@
+//! Kendryte K230 AIoT chip.
+
 mod pads;
 mod peripheral;
 
-use crate::soc::k230::pads::Pads;
+use crate::arch::rvi::Stack;
 use kendryte_hal::{clocks::Clocks, gpio, iomux, uart};
+use pads::Pads;
 
-#[cfg(all(feature = "k230"))]
-#[unsafe(naked)]
-#[unsafe(link_section = ".text.entry")]
-#[unsafe(export_name = "_start")]
-unsafe extern "C" fn start() -> ! {
-    use crate::arch::rvi::Stack;
-    use crate::soc::main;
-    const STACK_SIZE: usize = 32 * 1024;
+/// Platform stack size.
+pub const STACK_SIZE: usize = 32 * 1024;
 
-    #[unsafe(link_section = ".bss.uninit")]
-    static mut STACK: Stack<STACK_SIZE> = Stack([0; STACK_SIZE]);
-
-    core::arch::naked_asm!(
-        // Disable interrupt
-        "csrw   mie, zero",
-
-        // Prepare programming language stack
-        "la     sp, {stack}
-             li     t0, {stack_size}
-             add    sp, sp, t0",
-
-        // Clear `.bss` section
-        "la     t1, sbss
-             la     t2, ebss
-         1:  bgeu   t1, t2, 2f
-             sw     zero, 0(t1)
-             addi   t1, t1, 4
-             j      1b
-         2:",
-
-        // Start Rust main function
-        "call   {main}",
-
-        // Platform halt if main function returns
-        "
-         3:  wfi
-             j    3b",
-
-        stack      = sym STACK,
-        stack_size = const STACK_SIZE,
-        main       = sym main,
-    )
-}
-
-macro_rules! soc {
-    (
-        $(
-            $(#[$doc:meta])*
-            pub struct $Ty:ident => $paddr:expr, $DerefTy:ty;
-        )+
-    ) => {
-        $(
-            $(#[$doc])*
-            #[allow(non_camel_case_types)]
-            pub struct $Ty (());
-
-            impl $Ty {
-                #[inline]
-                pub const fn ptr() -> *const $DerefTy {
-                    $paddr as *const $DerefTy
-                }
-            }
-
-            impl core::ops::Deref for $Ty {
-                type Target = $DerefTy;
-
-                #[inline(always)]
-                fn deref(&self) -> & 'static Self::Target {
-                    unsafe { &*Self::ptr() }
-                }
-            }
-
-            impl core::convert::AsRef<$DerefTy> for $Ty {
-                #[inline(always)]
-                fn as_ref(&self) -> & 'static $DerefTy {
-                    unsafe { &*Self::ptr() }
-                }
-            }
-        )+
-    };
-}
+/// Stack for current platform.
+#[cfg(any(doc, feature = "k230"))]
+#[unsafe(link_section = ".bss.uninit")]
+pub static mut STACK: Stack<STACK_SIZE> = Stack([0; STACK_SIZE]);
 
 soc! {
+    /// Input/Output Multiplexer.
     pub struct IOMUX => 0x9110_5000, iomux::RegisterBlock;
+    /// General Purpose Input/Output 0.
     pub struct GPIO0 => 0x9140_B000, gpio::RegisterBlock;
+    /// General Purpose Input/Output 1.
     pub struct GPIO1 => 0x9140_C000, gpio::RegisterBlock;
+    /// Universal Asynchronous Receiver Transmitter 0.
     pub struct UART0 => 0x9140_0000, uart::RegisterBlock;
+    /// Universal Asynchronous Receiver Transmitter 1.
     pub struct UART1 => 0x9140_1000, uart::RegisterBlock;
+    /// Universal Asynchronous Receiver Transmitter 2.
     pub struct UART2 => 0x9140_2000, uart::RegisterBlock;
+    /// Universal Asynchronous Receiver Transmitter 3.
     pub struct UART3 => 0x9140_3000, uart::RegisterBlock;
+    /// Universal Asynchronous Receiver Transmitter 4.
     pub struct UART4 => 0x9140_4000, uart::RegisterBlock;
 }
 
 /// Peripherals available on ROM start.
 pub struct Peripherals {
+    /// Input/Output Multiplexer.
     pub iomux: Pads,
+    /// General Purpose Input/Output 0.
     pub gpio0: GPIO0,
+    /// General Purpose Input/Output 1.
     pub gpio1: GPIO1,
+    /// Universal Asynchronous Receiver Transmitter 0.
     pub uart0: UART0,
+    /// Universal Asynchronous Receiver Transmitter 1.
     pub uart1: UART1,
+    /// Universal Asynchronous Receiver Transmitter 2.
     pub uart2: UART2,
+    /// Universal Asynchronous Receiver Transmitter 3.
     pub uart3: UART3,
+    /// Universal Asynchronous Receiver Transmitter 4.
     pub uart4: UART4,
 }
 

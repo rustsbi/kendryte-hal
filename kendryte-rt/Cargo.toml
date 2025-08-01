@@ -13,4 +13,8 @@ arbitrary-int = "1.3"
 
 [features]
 default = []
-k230 = []
+k230 = ["cpu-c908"]
+k510 = []
+
+cpu-c908 = []
+# TODO cpu-andesv5 = []

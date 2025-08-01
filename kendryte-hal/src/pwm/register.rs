@@ -197,7 +197,7 @@ pub struct PwmCount {
     ///The PWM unit is based around a counter held in pwmcount.
     /// The counter can be read or written over the bus.
     /// The pwmcount register is (15 + cmpwidth) 30:0 R/W counter 0x0 bits wide.
-    /// For example, for cmpwidth of 16 bits, the counter is held in pwmcount[30:0], and bit 31 of pwmcount returns a zero when read.
+    /// For example, for cmpwidth of 16 bits, the counter is held in pwmcount\[30:0\], and bit 31 of pwmcount returns a zero when read.
     pub counter: u31,
     /// Reserved (bit 31).
     #[bit(31, r)]

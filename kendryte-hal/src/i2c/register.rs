@@ -7,7 +7,7 @@ use volatile_register::RW;
 #[repr(C)]
 pub struct RegisterBlock {
     /// I2C Control Register.
-    /// This register can be written only when the I2C controller is disabled, which corresponds to the IC_ENABLE[0] register being set to 0.
+    /// This register can be written only when the I2C controller is disabled, which corresponds to the IC_ENABLE\[0\] register being set to 0.
     /// Writes at other times have no effect.
     pub con: RW<u32>,
     /// I2C Target Address Register.
@@ -136,7 +136,7 @@ pub struct RegisterBlock {
     /// The register controls whether I2C controller responds with a ACK or NACK when it receives an I2C General Call address.
     pub ack_general_call: RW<u32>,
     /// I2C Enable Status Register.
-    /// The register is used to report the I2C controller hardware status when the IC_ENABLE[0] register is set from 1 to 0;
+    /// The register is used to report the I2C controller hardware status when the IC_ENABLE\[0\] register is set from 1 to 0;
     /// that is, when I2C controller is disabled.
     pub enable_status: RW<u32>,
     /// I2C SS, FS or FM+ spike suppression limit Register.
