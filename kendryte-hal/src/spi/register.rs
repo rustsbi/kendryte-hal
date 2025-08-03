@@ -14,35 +14,6 @@ pub enum WorkingMode {
     Master = 0b1,
 }
 
-/// Generic enable/disable enum for single-bit flags.
-#[bitenum(u1, exhaustive = true)]
-#[derive(Debug, PartialEq, Eq)]
-pub enum Enable {
-    /// The feature is disabled.
-    Disabled = 0b0,
-    /// The feature is enabled.
-    Enabled = 0b1,
-}
-
-/// Generic mask enum for single-bit flags.
-#[bitenum(u1, exhaustive = true)]
-#[derive(Debug, PartialEq, Eq)]
-pub enum Masked {
-    /// The flag is not masked.
-    UnMasked = 0b0,
-    /// The flag is masked.
-    Masked = 0b1,
-}
-/// Generic active/inactive enum for single-bit flags.
-#[bitenum(u1, exhaustive = true)]
-#[derive(Debug, PartialEq, Eq)]
-pub enum Active {
-    /// The feature is inactive.
-    Inactive = 0b0,
-    /// The feature is active.
-    Active = 0b1,
-}
-
 /// Microwire transfer mode.
 #[bitenum(u1, exhaustive = true)]
 #[derive(Debug, PartialEq, Eq)]
@@ -109,6 +80,76 @@ pub enum TransferMode {
     EepromRead = 0b11,
 }
 
+/// SPI Frame Format.
+#[bitenum(u2, exhaustive = true)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum SpiFrameFormat {
+    /// Standard SPI Format.
+    Standard = 0b00,
+    /// Dual SPI Format.
+    Dual = 0b01,
+    /// Quad SPI Format.
+    Quad = 0b10,
+    /// Octal SPI Format.
+    Octal = 0b11,
+}
+
+/// AXI Transfer Width.
+#[bitenum(u2, exhaustive = true)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum AxiTransferWidth {
+    /// 1 byte.
+    Byte = 0b00,
+    /// 2 bytes.
+    HalfWord = 0b01,
+    /// 4 bytes.
+    Word = 0b10,
+    /// 8 bytes.
+    DoubleWord = 0b11,
+}
+
+/// Address and instruction transfer format.
+#[bitenum(u2, exhaustive = true)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum TransferType {
+    /// Instruction and Address will be sent in Standard SPI Mode.
+    Standard = 0b00,
+    /// Instruction will be sent in Standard SPI Mode and Address will be sent in the mode specified by CTRLR0.SPI_FRF.
+    InstStandardAddrSpecial = 0b01,
+    /// Both Instruction and Address will be sent in the mode specified by SPI_FRF.
+    BothSpecial = 0b10,
+    /// Reserved.
+    Reserved = 0b11,
+}
+
+/// Instruction Length.
+#[bitenum(u2, exhaustive = true)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum InstructionLength {
+    /// 0-bit (No Instruction).
+    NoInstruction = 0b00,
+    /// 4-bit Instruction.
+    Bits4 = 0b01,
+    /// 8-bit Instruction.
+    Bits8 = 0b10,
+    /// 16-bit Instruction.
+    Bits16 = 0b11,
+}
+
+/// XIP Mode bits length.
+#[bitenum(u2, exhaustive = true)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum XipModeBitsLength {
+    /// Mode bits length equal to 2.
+    Bits2 = 0b00,
+    /// Mode bits length equal to 4.
+    Bits4 = 0b01,
+    /// Mode bits length equal to 8.
+    Bits8 = 0b10,
+    /// Mode bits length equal to 16.
+    Bits16 = 0b11,
+}
+
 /// Control Register 0 (CTRLR0)
 ///
 /// This register controls the serial data transfer. It is impossible to write to this register when the SSI is enabled.
@@ -118,9 +159,7 @@ pub struct ControlReg0 {
     /// Note: When SSIC_SPI_MODE is set to "Dual", "Quad" or "Octal" mode and SPI_FRF is not set to 2'b00: - DFS value must be a multiple of 2 if SPI_FRF = 01 - DFS value must be multiple of 4 if SPI_FRF = 10 - DFS value must be multiple of 8 if SPI_FRF = 11
     #[bits(0..=4, rw)]
     pub data_frame_size: u5, /* Reset value is 0x07 */
-    /// Reserved bit.
-    #[bit(5, r)]
-    pub _reserved_5: u1,
+
     /// Frame Format (FRF).
     /// 0x0 (SPI): Motorola SPI Frame Format
     // FIXME: access is `Varies`
@@ -153,7 +192,7 @@ pub struct ControlReg0 {
     /// -0x1 (DISABLED): Slave Output is disabled
     /// -0x0 (ENABLED): Slave Output is enabled
     #[bit(12, rw)]
-    pub slave_output_enable: Enable,
+    pub slave_output_enable: bool,
     /// Shift Register Loop (SRL).
     /// Used for testing purposes only.
     /// Values:
@@ -161,16 +200,13 @@ pub struct ControlReg0 {
     /// -0x0 (NORMAL_MODE): Normal mode operation
     // FIXME: access is `Varies`
     #[bit(13, rw)]
-    pub shift_register_loop: Enable,
+    pub shift_register_loop: bool,
     /// Slave Select Toggle Enable (SSTE).
     /// Values:
     /// - 0x1 (TOGGLE_EN): ss_n line will toggle between consecutive data frames, with the serial clock (sclk) being held to its Reset value while ssn is high
     /// - 0x0 (TOGGLE_DISABLE): ss*_n will stay low and sclk will run continuously for the duration of the transfer
     #[bit(14, rw)]
-    pub slave_select_toggle_enable: Enable, /* Default is 0x1 (TOGGLE_ENABLE) */
-    /// Reserved
-    #[bit(15, r)]
-    pub _reserved_15: u1,
+    pub slave_select_toggle_enable: bool, /* Default is 0x1 (TOGGLE_ENABLE) */
 
     /// Control Frame Size.
     #[bits(16..=19, rw)]
@@ -191,7 +227,7 @@ pub struct ControlReg0 {
     /// - 0x3 (SPI_OCTAL): Octal SPI Format
     // FIXME: access is `Varies`
     #[bits(22..=23, rw)]
-    pub spi_frame_format: u2,
+    pub spi_frame_format: SpiFrameFormat,
 
     /// SPI Hyperbus Frame Format Enable (SPI_HYPERBUS_EN):
     /// Values:
@@ -199,18 +235,14 @@ pub struct ControlReg0 {
     /// - 0x1 (ENABLE): Enable Hyperbus Format
     // FIXME: access is `Varies`
     #[bit(24, rw)]
-    pub spi_hyperbus_enable: Enable,
+    pub spi_hyperbus_enable: bool,
     /// SPI Dynamic Wait State Enable (SPI_DWS_EN).
     /// Enable Dynamic wait states in SPI mode of operation.
     /// Values:
     /// - 0x0 (DISABLE): Disable SPI Dynamic Wait State
     /// - 0x1 (ENABLE): Enable SPI Dynamic Wait State
     #[bit(25, rw)]
-    pub spi_dynamic_wait_enable: Enable,
-
-    /// Reserved.
-    #[bits(26..=30, r)]
-    _reserved: u5,
+    pub spi_dynamic_wait_enable: bool,
 
     /// SSI is Master or Slave (SSI_IS_MST).
     /// This field selects if SPI is working in Master or Slave mode
@@ -236,9 +268,6 @@ pub struct ControlReg1 {
 
     #[bits(0..=15, rw)]
     pub number_of_data_frames: u16,
-    /// Reserved.
-    #[bits(16..=31, r)]
-    _reserved: u16,
 }
 
 /// SSI Enable Register (SSIENR)
@@ -258,10 +287,7 @@ pub struct SsiEnableReg {
     /// - 0x1 (ENABLED): Enables FMC
     /// - 0x0 (DISABLE): Disables FMC
     #[bit(0, rw)]
-    pub ssi_enable: Enable,
-    /// Reserved.
-    #[bits(1..=31, r)]
-    _reserved: u31,
+    pub ssi_enable: bool,
 }
 
 /// Microwire Control Register (MWCR)
@@ -288,10 +314,7 @@ pub struct MicrowireControlReg {
     /// - 0x0 (DISABLE): handshaking interface is disabled
     // FIXME: access is `Varies`
     #[bit(2, rw)]
-    pub microwire_handshaking: Enable,
-    /// Reserved.
-    #[bits(3..=31, r)]
-    _reserved: u29,
+    pub microwire_handshaking: bool,
 }
 
 /// Slave Enable Register (SER)
@@ -308,9 +331,6 @@ pub struct SlaveEnableReg {
     // TODO: the two fields has a length that varies, currently we use a 30:2 separation.
     #[bits(0..=29, rw)]
     pub slave_select_enable: u30,
-    /// Reserved.
-    #[bits(30..=31,r)]
-    pub _reserved: u2,
 }
 
 /// Baud Rate Select Register (BAUDR)
@@ -318,9 +338,6 @@ pub struct SlaveEnableReg {
 /// Total Reset Value:0x0
 #[bitfield(u32)]
 pub struct BaudRateSelectReg {
-    /// Reserved.
-    #[bit(1, r)]
-    pub _reserved_0: u1,
     /// SSI Clock Divider (SCKDV).  
     /// The LSB for this field is always set to 0 and is unaffected by a write operation, which ensures an even value is held in this register.
     /// If the value is 0, the serial output clock (sclk_out) is disabled.
@@ -329,9 +346,6 @@ pub struct BaudRateSelectReg {
 
     #[bits(1..=15, rw)]
     pub ssi_clock_divider: u15, /* Reset value is SSIC_DFLT_BAUDR/2 */
-    /// Reserved.
-    #[bits(16..=31, r)]
-    _reserved_15_31: u16,
 }
 
 /// Transmit FIFO Threshold Level Register (TXFTLR)
@@ -357,16 +371,6 @@ pub struct TransmitFifoThresholdLevelReg {
     // FIXME: access is `Varies`
     #[bits(2..=15, rw)]
     pub transfer_start_fifo_level: u14,
-
-    /// Reserved.
-    // TODO: actually the field is 16:y
-    #[bits(16..=17, r)]
-    pub _reserved_0: u2,
-
-    /// Reserved.
-    // TODO: actually the field is 16:y
-    #[bits(18..=31, r)]
-    pub _reserved_1: u14,
 }
 
 /// Receive FIFO Threshold Level Register (RXFTLR)
@@ -384,10 +388,6 @@ pub struct ReceiveFifoThresholdLevelReg {
     // TODO: the field is x:0
     #[bits(0..=7, rw)]
     pub receive_fifo_threshold: u8,
-    /// Reserved.
-    // TODO: the field is 31:y
-    #[bits(8..=31, r)]
-    _reserved: u24,
 }
 
 /// Transmit FIFO Level Register (TXFLR)
@@ -400,10 +400,6 @@ pub struct TransmitFifoLevelReg {
     // TODO: the field is x:0
     #[bits(0..=7, r)]
     pub transmit_fifo_level: u8,
-    /// Reserved.
-    // TODO: the field is 31:y
-    #[bits(8..=31, r)]
-    _reserved: u24,
 }
 
 /// Receive FIFO Level Register (RXFLR)
@@ -416,10 +412,6 @@ pub struct ReceiveFifoLevelReg {
     // TODO: the field is x:0
     #[bits(0..=7, r)]
     pub receive_fifo_level: u8,
-    /// Reserved.
-    // TODO: the field is 31:y
-    #[bits(8..=31, r)]
-    _reserved: u24,
 }
 
 /// Status Register (SR)
@@ -475,9 +467,6 @@ pub struct StatusReg {
     /// - 0x0 (NO_ERROR_CONDITION): No Error
     #[bit(6, r)]
     pub data_collision_error: bool,
-    /// Reserved.
-    #[bits(7..=14, r)]
-    pub _reserved_0: u8,
 
     /// Completed Data frames (CMPLTD_DF)
     /// This field indicates total data frames transferred in the previous internal DMA transfer
@@ -495,38 +484,38 @@ pub struct InterruptMaskReg {
     /// - 0x1 (UNMASKED): ssi_txe_intr interrupt is not masked
     /// - 0x0 (MASKED): ssi_txe_intr interrupt is masked
     #[bit(0, rw)]
-    pub transmit_fifo_empty_interrupt_mask: Masked, /* Reset value is `Masked` (0x01) */
+    pub transmit_fifo_empty_interrupt_mask: bool, /* Reset value is `Masked` (0x01) */
     /// Transmit FIFO Overflow Interrupt Mask (TXOIM).
     /// Values:
     /// - 0x1 (UNMASKED): ssi_txo_intr interrupt is not masked
     /// - 0x0 (MASKED): ssi_txo_intr interrupt is masked
     #[bit(1, rw)]
-    pub transmit_fifo_overflow_interrupt_mask: Masked, /* Reset value is `Masked` (0x01) */
+    pub transmit_fifo_overflow_interrupt_mask: bool, /* Reset value is `Masked` (0x01) */
     /// Receive FIFO Underflow Interrupt Mask (RFUIM).
     /// Values:
     /// - 0x1 (UNMASKED): ssi_rfu_intr interrupt is not masked
     /// - 0x0 (MASKED): ssi_rfu_intr interrupt is masked
     #[bit(2, rw)]
-    pub receive_fifo_underflow_interrupt_mask: Masked, /* Reset value is `Masked` (0x01) */
+    pub receive_fifo_underflow_interrupt_mask: bool, /* Reset value is `Masked` (0x01) */
     /// Receive FIFO Overflow Interrupt Mask (RXUIM) .
     /// Values:
     /// - 0x1 (UNMASKED): ssi_rxu_intr interrupt is not masked
     /// - 0x0 (MASKED): ssi_rxu_intr interrupt is masked
     #[bit(3, rw)]
-    pub receive_fifo_overflow_interrupt_mask: Masked, /* Reset value is `Masked` (0x01) */
+    pub receive_fifo_overflow_interrupt_mask: bool, /* Reset value is `Masked` (0x01) */
     /// Receive FIFO Full Interrupt Mask (RXFIM).
     /// Values:
     /// - 0x1 (UNMASKED): ssi_rxf_intr interrupt is not masked
     /// - 0x0 (MASKED): ssi_rxf_intr interrupt is masked
     #[bit(4, rw)]
-    pub receive_fifo_full_interrupt_mask: Masked, /* Reset value is `Masked` (0x01) */
+    pub receive_fifo_full_interrupt_mask: bool, /* Reset value is `Masked` (0x01) */
     /// Multi-Master Contention Interrupt Mask (MSTIM).
     /// Values:
     /// - 0x1 (UNMASKED): ssi_xrxo_intr interrupt is not masked
     /// - 0x0 (MASKED): ssi_xrxo_intr interrupt is masked
     // FIXME: access is `Varies`
     #[bit(5, rw)]
-    pub multi_master_contention_interrupt_mask: Masked, /* Reset value is `Masked` (0x01) */
+    pub multi_master_contention_interrupt_mask: bool, /* Reset value is `Masked` (0x01) */
 
     /// XIP Receive FIFO Overflow Interrupt Mask (XRXIOM).
     /// Values:
@@ -534,7 +523,7 @@ pub struct InterruptMaskReg {
     /// - 0x0 (MASKED): ssi_xrxo_intr interrupt is masked
     // FIXME: access is `Varies`
     #[bit(6, rw)]
-    pub xip_receive_fifo_overflow_interrupt_mask: Masked,
+    pub xip_receive_fifo_overflow_interrupt_mask: bool,
 
     /// Transmit FIFO Underflow Interrupt Mask (TXUIM)
     /// Values:
@@ -542,18 +531,14 @@ pub struct InterruptMaskReg {
     /// - 0x0 (MASKED): ssi_txu_intr interrupt is masked
     // FIXME: access is `Varies`
     #[bit(7, rw)]
-    pub transmit_fifo_underflow_interrupt_mask: Masked,
+    pub transmit_fifo_underflow_interrupt_mask: bool,
     /// AXI Error Interrupt Mask
     /// Values:
     /// - 0x1 (UNMASKED): ssi_axie_intr interrupt is not masked
     /// - 0x0 (MASKED): ssi_axie_intr interrupt is masked
     // FIXME: access is `Varies`
     #[bit(8, rw)]
-    pub axi_error_interrupt_mask: Masked,
-
-    /// Reserved.
-    #[bit(9, r)]
-    _reserved_9: u1,
+    pub axi_error_interrupt_mask: bool,
 
     /// SPI Transmit Error Interrupt Mask (SPITEM)
     /// Values:
@@ -561,7 +546,7 @@ pub struct InterruptMaskReg {
     /// - 0x0 (MASKED): ssi_spite_intr interrupt is masked
     // FIXME: access is `Varies`
     #[bit(10, rw)]
-    pub spi_transmit_error_interrupt_mask: Masked,
+    pub spi_transmit_error_interrupt_mask: bool,
 
     /// SSI Done Interrupt Mask (DONEM)
     /// Values:
@@ -569,12 +554,7 @@ pub struct InterruptMaskReg {
     /// - 0x0 (MASKED): ssi_done_intr interrupt is masked
     // FIXME: access is `Varies`
     #[bit(11, rw)]
-    pub ssi_done_interrupt_mask: Masked,
-
-    /// Reserved.
-    #[bits(12..=31, r)]
-    // FIXME: should it be 31 instead of 32? (this is directly from the TRM)
-    _reserved_12_32: u20,
+    pub ssi_done_interrupt_mask: bool,
 }
 
 /// Interrupt Status Register (ISR)
@@ -587,25 +567,25 @@ pub struct InterruptStatusReg {
     /// - 0x1 (ACTIVE): ssi_txe_intr interrupt is active after masking
     /// - 0x0 (INACTIVE): ssi_txe_intr interrupt is not active after masking
     #[bit(0, r)]
-    pub transmit_fifo_empty_interrupt_status: Active,
+    pub transmit_fifo_empty_interrupt_status: bool,
     /// Transmit FIFO Overflow Interrupt Status (TXOIS).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_txo_intr interrupt is active after masking
     /// - 0x0 (INACTIVE): ssi_txo_intr interrupt is not active after masking
     #[bit(1, r)]
-    pub transmit_fifo_overflow_interrupt_status: Active,
+    pub transmit_fifo_overflow_interrupt_status: bool,
     /// Receive FIFO Underflow Interrupt Status (RXUIS).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_rxu_intr interrupt is active after masking
     /// - 0x0 (INACTIVE): ssi_rxu_intr interrupt is not active after masking
     #[bit(2, r)]
-    pub receive_fifo_underflow_interrupt_status: Active,
+    pub receive_fifo_underflow_interrupt_status: bool,
     /// Receive FIFO Overflow Interrupt Statusa (RXOIS).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_rxo_intr interrupt is active after masking
     /// - 0x0 (INACTIVE): ssi_rxo_intr interrupt is not active after masking
     #[bit(3, r)]
-    pub receive_fifo_overflow_interrupt_status: Active,
+    pub receive_fifo_overflow_interrupt_status: bool,
     /// Receive FIFO Full Interrupt Status (RXFIS).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_rxf_intr interrupt is active after masking
@@ -618,46 +598,38 @@ pub struct InterruptStatusReg {
     /// - 0x1 (ACTIVE): ssi_mst_intr interrupt is active after masking
     /// - 0x0 (INACTIVE): ssi_mst_intr interrupt is not active after masking
     #[bit(5, r)]
-    pub multi_master_contention_interrupt_status: Active,
+    pub multi_master_contention_interrupt_status: bool,
     /// XIP Receive FIFO Overflow Interrupt Status (XRXOIS).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_xrxo_intr interrupt is active after masking
     /// - 0x0 (INACTIVE): ssi_xrxo_intr interrupt is not active after masking
     #[bit(6, r)]
-    pub xip_receive_fifo_overflow_interrupt_status: Active,
+    pub xip_receive_fifo_overflow_interrupt_status: bool,
     /// Transmit FIFO Underflow Interrupt Status (TXUIS).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_txu_intr interrupt is active after masking
     /// - 0x0 (INACTIVE): ssi_txu_intr interrupt is not active after masking
     #[bit(7, r)]
-    pub transmit_fifo_underflow_interrupt_status: Active,
+    pub transmit_fifo_underflow_interrupt_status: bool,
     /// AXI Error Interrupt Status (AXIES).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_axie_intr interrupt is active after masking
     /// - 0x0 (INACTIVE): ssi_axie_intr interrupt is not active after masking
     #[bit(8, r)]
-    pub axi_error_interrupt_status: Active,
-
-    /// Reserved.
-    #[bit(9, r)]
-    _reserved_9: u1,
+    pub axi_error_interrupt_status: bool,
 
     /// SPI Transmit Error Interrupt Status (SPITES).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_spite_intr interrupt is active after masking
     /// - 0x0 (INACTIVE): ssi_spite_intr interrupt is not active after masking
     #[bit(10, r)]
-    pub spi_transmit_error_interrupt_status: Active,
+    pub spi_transmit_error_interrupt_status: bool,
 
     /// SSI Done Interrupt Status (DONES).
     /// Values: - 0x1 (ACTIVE): ssi_done_intr interrupt is active after masking
     /// - 0x0 (INACTIVE): ssi_done_intr interrupt is not active after masking
     #[bit(11, r)]
-    pub ssi_done_interrupt_status: Active,
-
-    /// Reserved.
-    #[bits(12..=31, r)]
-    _reserved_12_31: u20,
+    pub ssi_done_interrupt_status: bool,
 }
 
 /// Raw Interrupt Status Register (RISR)
@@ -671,62 +643,58 @@ pub struct RawInterruptStatusReg {
     /// - 0x1 (ACTIVE): ssi_txe_intr interrupt is active prior to masking
     /// - 0x0 (INACTIVE): ssi_txe_intr interrupt is not active prior masking
     #[bit(0, r)]
-    pub transmit_fifo_empty_raw_interrupt_status: Active,
+    pub transmit_fifo_empty_raw_interrupt_status: bool,
     /// Transmit FIFO Overflow Raw Interrupt Status (TXOIR).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_txo_intr interrupt is active prior to masking
     /// - 0x0 (INACTIVE): ssi_txo_intr interrupt is not active prior masking
     #[bit(1, r)]
-    pub transmit_fifo_overflow_raw_interrupt_status: Active,
+    pub transmit_fifo_overflow_raw_interrupt_status: bool,
     /// Receive FIFO Underflow Raw Interrupt Status (RXUIR).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_rxu_intr interrupt is active prior to masking
     /// - 0x0 (INACTIVE): ssi_rxu_intr interrupt is not active prior masking
     #[bit(2, r)]
-    pub receive_fifo_underflow_raw_interrupt_status: Active,
+    pub receive_fifo_underflow_raw_interrupt_status: bool,
     /// Receive FIFO Overflow Raw Interrupt Status (RXOIR).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_rxo_intr interrupt is active prior to masking
     /// - 0x0 (INACTIVE): ssi_rxo_intr interrupt is not active prior masking
     #[bit(3, r)]
-    pub receive_fifo_overflow_raw_interrupt_status: Active,
+    pub receive_fifo_overflow_raw_interrupt_status: bool,
     /// Receive FIFO Full Raw Interrupt Status (RXFIR).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_rxf_intr interrupt is active prior to masking
     /// - 0x0 (INACTIVE): ssi_rxf_intr interrupt is not active prior masking
     #[bit(4, r)]
-    pub receive_fifo_full_raw_interrupt_status: Active,
+    pub receive_fifo_full_raw_interrupt_status: bool,
     /// Multi-Master Contention Raw Interrupt Status (MSTIR).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_mst_intr interrupt is active prior to masking
     /// - 0x0 (INACTIVE): ssi_mst_intr interrupt is not active prior masking
     #[bit(5, r)]
-    pub multi_master_contention_raw_interrupt_status: Active,
+    pub multi_master_contention_raw_interrupt_status: bool,
 
     /// XIP Receive FIFO Overflow Raw Interrupt Status (XRXOIR).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_xrxo_intr interrupt is active piror masking
     /// - 0x0 (INACTIVE): ssi_xrxo_intr interrupt is not active piror masking
     #[bit(6, r)]
-    pub xip_receive_fifo_overflow_raw_interrupt_status: Active,
+    pub xip_receive_fifo_overflow_raw_interrupt_status: bool,
 
     /// Transmit FIFO Underflow Raw Interrupt Status (TXUIR).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_txu_intr interrupt is active prior masking
     /// - 0x0 (INACTIVE): ssi_txu_intr interrupt is not active prior masking
     #[bit(7, r)]
-    pub transmit_fifo_underflow_raw_interrupt_status: Active,
+    pub transmit_fifo_underflow_raw_interrupt_status: bool,
 
     /// AXI Error Interrupt Raw Status (AXIER).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_axie_intr interrupt is active pior masking
     /// - 0x0 (INACTIVE): ssi_axie_intr interrupt is not active prior masking
     #[bit(8, r)]
-    pub axi_error_interrupt_raw_status: Active,
-
-    /// Reserved.
-    #[bit(9, r)]
-    _reserved_9: u1,
+    pub axi_error_interrupt_raw_status: bool,
 
     /// SPI Transmit Error Interrupt Status (SPITER).
     /// This bit gets set, If SPI Master fails to get a READY status from the slave until the amount of time defined in SPI_CTRLR1.MAX_WS field, then it will stop the SPI transfer and the FIFO is flushed (in case of write operation).
@@ -735,19 +703,14 @@ pub struct RawInterruptStatusReg {
     /// - 0x1 (ACTIVE): ssi_spite_intr interrupt is active prior masking
     /// - 0x0 (INACTIVE): ssi_spite_intr interrupt is not active prior masking
     #[bit(10, r)]
-    pub spi_transmit_error_interrupt_status: Active,
+    pub spi_transmit_error_interrupt_status: bool,
 
     /// SSI Done Interrupt Raw Status (DONER).
     /// Values:
     /// - 0x1 (ACTIVE): ssi_done_intr interrupt is active prior masking
     /// - 0x0 (INACTIVE): ssi_done_intr interrupt is not active prior masking
     #[bit(11, r)]
-    pub ssi_done_interrupt_raw_status: Active,
-
-    /// Reserved.
-    /// FIXME: should it be 31 instead of 32? (this is directly from the TRM)
-    #[bits(12..=31, r)]
-    _reserved_12_32: u20,
+    pub ssi_done_interrupt_raw_status: bool,
 }
 
 /// Transmit FIFO Error Interrupt Clear Registers (TXEICR)
@@ -761,10 +724,6 @@ pub struct TransmitFifoErrorInterruptClearReg {
     // FIXME: access is `RC`
     #[bit(0, rw)]
     pub transmit_fifo_error_interrupt_clear: bool,
-
-    /// Reserved.
-    #[bits(1..=31, r)]
-    pub _reserved: u31,
 }
 
 /// Receive FIFO Overflow Interrupt Clear Register (RXOICR)
@@ -778,9 +737,6 @@ pub struct ReceiveFifoOverflowInterruptClearReg {
     // FIXME: access is `RC`
     #[bit(0, rw)]
     pub receive_fifo_overflow_interrupt_clear: bool,
-    /// Reserved.
-    #[bits(1..=31, r)]
-    pub _reserved: u31,
 }
 
 /// Receive FIFO Underflow Interrupt Clear Register (RXUICR)
@@ -795,9 +751,6 @@ pub struct ReceiveFifoUnderflowInterruptClearReg {
     /// FIXME: access is `RC`
     #[bit(0, rw)]
     pub receive_fifo_underflow_interrupt_clear: bool,
-    /// Reserved.
-    #[bits(1..=31, r)]
-    pub _reserved: u31,
 }
 
 /// Multi-Master Interrupt Clear Register (MSTICR)
@@ -812,9 +765,6 @@ pub struct MultiMasterInterruptClearReg {
     // FIXME: access is `RC`
     #[bit(0, rw)]
     pub multi_master_interrupt_clear: bool,
-    /// Reserved.
-    #[bits(1..=31, r)]
-    pub _reserved: u31,
 }
 
 /// Interrupt Clear Register (ICR)
@@ -828,9 +778,6 @@ pub struct InterruptClearReg {
     /// Writing to this register has no effect.
     #[bit(0, rw)]
     pub interrupt_clear: bool,
-    /// Reserved.
-    #[bits(1..=31, r)]
-    pub _reserved: u31,
 }
 
 /// DMA Control Register (DMACR)
@@ -846,7 +793,7 @@ pub struct DmaControlReg {
     /// - 0x0 (DISABLED): Receive DMA channel is disabled
     // FIXME: access is `Varies`
     #[bit(0, rw)]
-    pub receive_dma_enable: Enable,
+    pub receive_dma_enable: bool,
     /// Transmit DMA Enable (TDMAE).
     /// This bit enables/disables the transmit FIFO DMA channel.
     /// Values:
@@ -854,12 +801,12 @@ pub struct DmaControlReg {
     /// - 0x0 (DISABLED): Transmit DMA channel is disabled
     // FIXME: access is `Varies`
     #[bit(1, rw)]
-    pub transmit_dma_enable: Enable,
+    pub transmit_dma_enable: bool,
     /// Internal DMA Enable (IDMAE).
     /// This bit should be enabled only when CTRLR0.FRF = 0 (Motorola SPI) and CTRLR0.SPI_FRF > 0.
     // FIXME: access is `Varies`
     #[bit(2, rw)]
-    pub internal_dma_enable: Enable,
+    pub internal_dma_enable: bool,
     /// AXI Transfer Width for DMA transfer mapped to arsize/awsize.
     /// This value must be less than or equal to SSIC_AXI_DW.
     /// Values:
@@ -870,20 +817,15 @@ pub struct DmaControlReg {
     /// Note: When SSIC_AXI_DW is set to 32 bits, if user programs this field to 0x8(3 bytes). SPI will use 4 bytes as transfer size for the AXI transfers.
     // FIXME: access is `Varies`
     #[bits(3..=4, rw)]
-    pub axi_transfer_width: u2,
-    /// Reserved.
-    #[bit(5, r)]
-    pub _reserved_5: u1,
+    pub axi_transfer_width: AxiTransferWidth,
+
     /// Address Increment (AINC).
     /// Indicates whether to increment the AXI address on every transfer. 1 = Increment 0 = No Change
     /// Note: Increment aligns the address to the next DMACR.ATW boundary
     // FIXME: access is `Varies`
     #[bit(6, rw)]
-    pub address_increment: Enable,
+    pub address_increment: bool,
 
-    /// Reserved.
-    #[bit(7, r)]
-    pub _reserved_7: u1,
     /// AXI arcache/awcache signal value (ACACHE).
     // FIXME: access is `Varies`
     #[bits(8..=11, rw)]
@@ -897,10 +839,6 @@ pub struct DmaControlReg {
     // TODO: the field is x:15
     #[bits(15..=16, rw)]
     pub axi_id: u2,
-    /// Reserved.
-    // TODO: the field is 31:y
-    #[bits(17..=31, r)]
-    _reserved: u15,
 }
 
 /// DMA Transmit Data Level Register / AXI Write Length Register (DMATDLR_AXI_AWLEN)
@@ -914,10 +852,6 @@ pub struct DmaTransmitDataLevelReg {
     // TODO: the field is x:0
     #[bits(0..=15, rw)]
     pub transmit_data_level: u16,
-    /// Reserved.
-    // TODO: the field is 31:y
-    #[bits(16..=31, r)]
-    pub _reserved: u16,
 }
 
 /// Destination Burst Length Register (AXIAWLEN)
@@ -926,17 +860,10 @@ pub struct DmaTransmitDataLevelReg {
 ///
 #[bitfield(u32)]
 pub struct DestinationBurstLengthReg {
-    /// Reserved.
-    #[bits(0..=7, r)]
-    pub _reserved_0: u8,
     /// Destination Burst Length (AWLEN).
     // TODO: the field is x:8
     #[bits(8..=15, rw)]
     pub destination_burst_length: u8, /* Reset value is 0x07 */
-    /// Reserved.
-    // TODO : the field is 31:y
-    #[bits(16..=31, r)]
-    pub _reserved_1: u16,
 }
 /// DMA Receive Data Level Register (DMARDLR)
 /// Offset Address: 0x54
@@ -949,10 +876,6 @@ pub struct DmaReceiveDataLevelReg {
     // TODO: the field is x:0
     #[bits(0..=15, rw)]
     pub receive_data_level: u16,
-    /// Reserved.
-    // TODO: the field is 31:y
-    #[bits(16..=31, r)]
-    pub _reserved: u16,
 }
 
 /// Source Burst Length Register (AXIARLEN)
@@ -960,17 +883,10 @@ pub struct DmaReceiveDataLevelReg {
 /// Total Reset Value:0x00000700
 #[bitfield(u32)]
 pub struct SourceBurstLengthReg {
-    /// Reserved.
-    #[bits(0..=7, r)]
-    pub _reserved_0: u8,
     /// Source Burst Length (ARLEN).
     // TODO: the field is x:8
     #[bits(8..=15, rw)]
     pub source_burst_length: u8, /* Reset value is 0x07 */
-    /// Reserved.
-    // TODO : the field is 31:y
-    #[bits(16..=31, r)]
-    pub _reserved_1: u16,
 }
 
 /// Identification Register (IDR)
@@ -1015,10 +931,8 @@ pub struct DataReg {
 #[bitfield(u32)]
 pub struct ControlReg {
     #[bit(0, rw)]
-    pub ssi0_xip_en: Enable,
+    pub ssi0_xip_en: bool,
     // FIXME: 1 is actually missing in TRM
-    #[bits(1..=3, r)]
-    pub _reserved_1_3: u3,
     #[bit(4, r)]
     pub ssi0_ssi_sleep: bool,
     #[bits(5..=6, r)]
@@ -1051,18 +965,13 @@ pub struct RxSampleDelayReg {
     /// Note; If this register is programmed with a value that exceeds the depth of the internal shift registers (SSIC_RX_DLY_SR_DEPTH) zero delay will be applied to the rxd sample.
     #[bits(0..=7, rw)]
     pub rx_sample_delay: u8,
-    /// Reserved.
-    #[bits(8..=15, r)]
-    pub _reserved_8_15: u8,
+
     /// Receive Data (rxd) Sampling Edge (SE).
     /// This register is used to decide the sampling edge for RXD signal with ssi_clk.
     /// Then this bit is set to 1 then negative edge of ssi_clk will be used to sample the incoming data, otherwise positive edge will be used for sampling
     // FIXME: access is `Varies`
     #[bit(16, rw)]
     pub rx_sampling_edge: bool,
-    /// Reserved.
-    #[bits(17..=31, r)]
-    pub _reserved_17_31: u15,
 }
 
 /// SPI Control Register 0 (SPI_CTRLR0)
@@ -1078,7 +987,7 @@ pub struct SpiControlReg0 {
     /// - 0x2 (TT2): Both Instruction and Address will be sent in the mode specified by SPI_FRF.
     /// - 0x3 (TT3): Reserved.
     #[bits(0..=1, rw)]
-    pub trans_type: u2,
+    pub trans_type: TransferType,
     /// Address Length (ADDR_L).
     /// This bit defines Length of Address to be transmitted.
     /// Only valid when ADDRLEN = 11
@@ -1101,16 +1010,14 @@ pub struct SpiControlReg0 {
     /// 0xf (ADDR_WIDTH_60_BITS): 60-bit Address Width
     #[bits(2..=5, rw)]
     pub addr_len: u4,
-    /// Reserved.
-    #[bit(6, r)]
-    pub _reserved_6: u1,
+
     /// Mode bits enable in XIP mode (XIP_MD_BIT_EN).
     /// If this bit is set to 1, then in XIP mode of operation the controller will insert mode bits after the address phase.
     /// These bits are set in register XIP_MODE_BITS register.
     /// The length of mode bits is always set to 8 bits.
     // FIXME: access is `Varies`
     #[bit(7, rw)]
-    pub xip_mode_bits_enable: Enable,
+    pub xip_mode_bits_enable: bool,
     /// Instruction Length (INST_L).
     /// Dual/Quad/Octal mode instruction length in bits.
     /// Values:
@@ -1120,10 +1027,8 @@ pub struct SpiControlReg0 {
     /// 0x3 (INST_L_16_BITS): 16-bit Instruction
     ///
     #[bits(8..=9, rw)]
-    pub inst_len: u2, /* Reset value is 0x2 */
-    /// Reserved.
-    #[bits(10..=10, r)]
-    pub _reserved_10: bool,
+    pub inst_len: InstructionLength, /* Reset value is 0x2 */
+
     /// Wait cycles in Dual/Quad/Octal mode between control frames transmit and data reception. (WAIT_CYCLES)
     /// Specified as number of SPI clock cycles.
     #[bits(11..=15, rw)]
@@ -1131,17 +1036,17 @@ pub struct SpiControlReg0 {
     /// SPI DDR Enable (SPI_DDR_EN). This will enable Dual-data rate transfers in Dual/Quad/Octal frame formats of SPI
     // FIXME: access is `Varies`
     #[bit(16, rw)]
-    pub spi_ddr_en: Enable,
+    pub spi_ddr_en: bool,
     /// Instruction DDR Enable (INST_DDR_EN). This will enable Dual-data rate transfer for Instruction phase.
     // FIXME: access is `Varies`
     #[bit(17, rw)]
-    pub inst_ddr_en: Enable,
+    pub inst_ddr_en: bool,
     /// Read data strobe enable bit.
     /// Once this bit is set to 1 the controller will use Read data strobe (rxds) to capture read data in DDR mode.
 
     // FIXME: access is `Varies`
     #[bit(18, rw)]
-    pub spi_rxds_en: Enable,
+    pub spi_rxds_en: bool,
     ///Fix DFS for XIP transfers (XIP_DFS_HC).
     /// If this bit is set to 1 then data frame size for XIP transfers will be fixed to the programmed value in CTRLR0.DFS.
     /// The number of data frames to fetch will be determined by HSIZE and HBURST signals.
@@ -1155,31 +1060,27 @@ pub struct SpiControlReg0 {
     /// The instruction op-codes will be chosen from XIP_INCR_INST or XIP_WRAP_INST registers bases on AHB transfer type.
     // FIXME: access is `Varies`
     #[bit(20, rw)]
-    pub xip_inst_enabled: Enable,
+    pub xip_inst_enabled: bool,
 
     /// Enable continuous transfer in XIP mode (SSIC_XIP_CONT_XFER_EN).
     /// If this bit is set to 1 then continuous transfer mode in XIP will be enabled, in this mode the controller will keep slave selected until a non-XIP transfer is detected on the AHB interface.
     // FIXME: access is `Varies`
     #[bit(21, rw)]
-    pub xip_continuous_transfer_enabled: Enable,
-
-    /// Reserved.
-    #[bits(22..=23, r)]
-    pub _reserved_22_23: u2,
+    pub xip_continuous_transfer_enabled: bool,
 
     /// SPI data mask enable bit (SPI_DM_EN).
     /// When this bit is enabled, the txd_dmsignal is used to mask the data on the txd data line.
     /// This bit is enabled only when the SSIC_DM_EN parameter is set to 1.
     // FIXME: access is `Varies`
     #[bit(24, rw)]
-    pub spi_data_mask_enabled: Enable,
+    pub spi_data_mask_enabled: bool,
 
     ///Enable rxds signaling during address and command phase of Hypebus transfer.(SPI_RXDS_SIG_EN)
     /// This bit enables rxds signaling by Hyperbus slave devices during Command-Address (CA) phase.
     /// If the rxds signal is set to 1 during the CA phase of transfer, the controller transmits (2*SPI_CTRLR0.WAIT_CYCLES-1) wait cycles after the address phase is complete.
     // FIXME: access is `Varies`
     #[bit(25, rw)]
-    pub spi_rxds_signal_enabled: Enable,
+    pub spi_rxds_signal_enabled: bool,
 
     /// XIP Mode bits length (XIP_MBL).
     /// Sets the length of mode bits in XIP mode of operation.
@@ -1192,27 +1093,20 @@ pub struct SpiControlReg0 {
 
     // FIXME: access is `Varies`
     #[bits(26..=27, rw)]
-    pub xip_mode_bits_length: u2,
-
-    /// Reserved.
-    #[bit(28, r)]
-    pub _reserved_28: u1,
+    pub xip_mode_bits_length: XipModeBitsLength,
 
     /// Enables XIP pre-fetch functionality in the controller (XIP_PREFETCH_EN).
     /// Once enabled the controller will pre-fetch data frames from next contigous location, to reduce the latency for the upcoming contiguous transfer.
     /// If the next XIP request is not contigous then pre-fetched bits will be discarded.
     // FIXME: access is `Varies`
     #[bit(29, rw)]
-    pub xip_prefetch_enabled: Enable,
+    pub xip_prefetch_enabled: bool,
 
     /// Enables clock stretching capability in SPI transfers (CLK_STRETCH_EN).
     /// In case of write, if the FIFO becomes empty the controller will stretch the clock until FIFO has enough data to continue the transfer.In case of read, if the receive FIFO becomes full the controller will stop the clock until data has been read from the FIFO.
     // FIXME: access is `Varies`
     #[bit(30, rw)]
-    pub clock_stretching_enabled: Enable,
-    /// Reserved.
-    #[bit(31, r)]
-    pub _reserved_31: bool,
+    pub clock_stretching_enabled: bool,
 }
 
 /// DDR Drive Edge Register (DDR_DRIVE_EDGE)
@@ -1224,9 +1118,6 @@ pub struct DdrDriveEdgeReg {
     /// Decided the driving edge of transmit data.The maximum value of this register is = (BAUDR/2) -1.
     #[bits(0..=7, rw)]
     pub drive_edge: u8,
-    /// Reserved.
-    #[bits(8..=31, r)]
-    pub _reserved: u24,
 }
 
 /// SPI Control Register 1 (SPI_CTRLR1)
@@ -1240,18 +1131,11 @@ pub struct SpiControlReg1 {
     #[bits(0..=2, rw)]
     pub spi_dynamic_wait_states: u3,
 
-    /// Reserved.
-    #[bits(3..=7, r)]
-    pub _reserved_3_7: u5,
     ///Maximum wait cycles allowed per transaction (MAX_WS).This field indicate, up to how many times SPI slave could insert the wait states.
     /// The internal counter is incremented every time when the controller checks for the status from the slave and receives wait response.
 
     #[bits(8..=11, rw)]
     pub max_ws: u4,
-
-    /// Reserved.
-    #[bits(12..=31, r)]
-    pub _reserved_12_32: u20,
 }
 
 /// SPI Transmit Error Clear Register (SPITECR)
@@ -1263,9 +1147,6 @@ pub struct SpiTransmitErrorClearReg {
     /// This register will reflect the status of the interrupt.A read from this register clears the ssi_spite_intr interrupt. Writing to this register has no effect..
     #[bit(0, rw)]
     pub spi_transmit_error_clear: bool,
-    /// Reserved.
-    #[bits(1..=31, r)]
-    pub _reserved: u31,
 }
 
 /// SPI Device Register (SPIDR)
@@ -1277,9 +1158,6 @@ pub struct SpiDeviceReg {
     /// This instruction code will be used for SPI operations.
     #[bits(0..=15, rw)]
     pub spi_device: u16,
-    /// Reserved.
-    #[bits(16..=31, r)]
-    pub _reserved: u16,
 }
 
 /// SPI Address Register (SPIAR)
@@ -1312,11 +1190,6 @@ pub struct AxiAddressReg1 {
     // TODO: the field is x:0
     #[bits(0..=15, rw)]
     pub axi_address: u16,
-
-    /// Reserved.
-    // TODO: the field is 31:y
-    #[bits(16..=31, r)]
-    pub _reserved: u16,
 }
 
 /// AXI Error Clear Register (AXIECR)
@@ -1328,9 +1201,6 @@ pub struct AxiErrorClearReg {
     /// This register will reflect the status of the  interrupt. A read from this register clears the ssi_axie_intr interrupt. Writing to this register has no effect.
     #[bit(0, rw)]
     pub axi_error_clear: bool,
-    /// Reserved.
-    #[bits(1..=31, r)]
-    pub _reserved: u31,
 }
 
 /// Done Clear Register (DONECR)
@@ -1342,9 +1212,6 @@ pub struct DoneClearReg {
     /// This register will reflect the status of the interrupt. A read from this register clears the ssi_done_intr 0x0 interrupt.Writing to this register has no effect.
     #[bit(0, rw)]
     pub done_clear: bool,
-    /// Reserved.
-    #[bits(1..=31, r)]
-    pub _reserved: u31,
 }
 
 /// SPI Register Block
