@@ -1,13 +1,13 @@
 use crate::iomux::FlexPad;
 use crate::uart::blocking::{blocking_flush, blocking_write, write_ready};
-use crate::uart::{RegisterBlock, UartError};
+use crate::uart::{MmioRegisterBlock, UartError};
 use core::marker::PhantomData;
 
 /// A UART transmitter for blocking operations.
 /// This struct implements blocking write operations for UART communication.
 pub struct BlockingUartTx<'i, 't> {
     /// Holds a reference to the UART register block.
-    pub(crate) inner: &'static RegisterBlock,
+    pub(crate) inner: MmioRegisterBlock<'static>,
     /// Contains a mutable handle to the TX pad.
     pub(crate) tx: FlexPad<'t>,
     /// Uses PhantomData for lifetime tracking.
@@ -20,11 +20,11 @@ impl<'i, 't> embedded_io::ErrorType for BlockingUartTx<'i, 't> {
 
 impl<'i, 't> embedded_io::Write for BlockingUartTx<'i, 't> {
     fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
-        Ok(blocking_write(&self.inner, buf))
+        Ok(blocking_write(&mut self.inner, buf))
     }
 
     fn flush(&mut self) -> Result<(), Self::Error> {
-        blocking_flush(&self.inner);
+        blocking_flush(&mut self.inner);
         Ok(())
     }
     fn write_all(&mut self, mut buf: &[u8]) -> Result<(), Self::Error> {
@@ -44,7 +44,7 @@ impl<'i, 't> embedded_hal_nb::serial::ErrorType for BlockingUartTx<'i, 't> {
 
 impl<'i, 't> embedded_hal_nb::serial::Write for BlockingUartTx<'i, 't> {
     fn write(&mut self, word: u8) -> embedded_hal_nb::nb::Result<(), Self::Error> {
-        let len = blocking_write(&self.inner, &[word]);
+        let len = blocking_write(&mut self.inner, &[word]);
         match len {
             0 => Err(embedded_hal_nb::nb::Error::WouldBlock),
             _ => Ok(()),
@@ -52,7 +52,7 @@ impl<'i, 't> embedded_hal_nb::serial::Write for BlockingUartTx<'i, 't> {
     }
 
     fn flush(&mut self) -> embedded_hal_nb::nb::Result<(), Self::Error> {
-        match self.inner.lsr.read().transmitter_empty() {
+        match self.inner.read_lsr().transmitter_empty() {
             true => Ok(()),
             false => Err(embedded_hal_nb::nb::Error::WouldBlock),
         }
@@ -61,6 +61,6 @@ impl<'i, 't> embedded_hal_nb::serial::Write for BlockingUartTx<'i, 't> {
 
 impl<'i, 't> embedded_io::WriteReady for BlockingUartTx<'i, 't> {
     fn write_ready(&mut self) -> Result<bool, Self::Error> {
-        Ok(write_ready(&self.inner))
+        Ok(write_ready(&mut self.inner))
     }
 }

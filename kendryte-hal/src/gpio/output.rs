@@ -1,5 +1,5 @@
 use crate::gpio::pad::{IntoGpio, Port};
-use crate::gpio::{Direction, Input, RegisterBlock};
+use crate::gpio::{Direction, Input, MmioRegisterBlock};
 use crate::instance::Numbered;
 use crate::iomux::FlexPad;
 use crate::iomux::ops::{PadOps, Pull};
@@ -11,7 +11,7 @@ use embedded_hal::digital::{ErrorType, OutputPin, PinState, StatefulOutputPin};
 
 /// Represents a GPIO output pin.
 pub struct Output<'i, 'p> {
-    pub(crate) inner: &'static RegisterBlock,
+    pub(crate) inner: MmioRegisterBlock<'static>,
     pub(crate) pad: FlexPad<'p>,
     pub(crate) port: Port,
     pub(crate) pin_num: usize,
@@ -21,36 +21,28 @@ pub struct Output<'i, 'p> {
 impl<'i, 'p> Output<'i, 'p> {
     /// Creates a new Output instance for a specific pad and GPIO port.
     pub fn new<const N: usize, P>(
-        instance: impl Numbered<'i, N, R = RegisterBlock>,
+        instance: impl Numbered<'i, N, R = MmioRegisterBlock<'static>>,
         pad: P,
         pin_state: PinState,
         drive_strength: Strength,
     ) -> Self
     where
-        P: PadOps + IntoGpio<'p, N>,
+        P: IntoGpio<'p, N>,
     {
         let mut pad = pad.into_gpio();
         pad.set_drive_strength(drive_strength);
         let port = <P as IntoGpio<N>>::PORT;
         let pin_num = <P as IntoGpio<N>>::PIN_NUM;
-        let inner = instance.inner();
+        let mut inner = instance.inner();
 
         match port {
             Port::A => unsafe {
-                inner
-                    .swporta_ddr
-                    .modify(|r| r.with_direction(pin_num, Direction::Output));
-                inner
-                    .swporta_dr
-                    .modify(|r| r.with_pin_state(pin_num, pin_state.into()))
+                inner.modify_swporta_ddr(|r| r.with_direction(pin_num, Direction::Output));
+                inner.modify_swporta_dr(|r| r.with_pin_state(pin_num, pin_state.into()))
             },
             Port::B => unsafe {
-                inner
-                    .swportb_ddr
-                    .modify(|r| r.with_direction(pin_num, Direction::Output));
-                inner
-                    .swportb_dr
-                    .modify(|r| r.with_pin_state(pin_num, pin_state.into()))
+                inner.modify_swporta_ddr(|r| r.with_direction(pin_num, Direction::Output));
+                inner.modify_swporta_dr(|r| r.with_pin_state(pin_num, pin_state.into()))
             },
         }
 
@@ -66,23 +58,21 @@ impl<'i, 'p> Output<'i, 'p> {
     /// Reads the current output state of the pin.
     pub fn pin_state(&mut self) -> PinState {
         match self.port {
-            Port::A => self.inner.swporta_dr.read().pin_state(self.pin_num).into(),
-            Port::B => self.inner.swportb_dr.read().pin_state(self.pin_num).into(),
+            Port::A => self.inner.read_swporta_dr().pin_state(self.pin_num).into(),
+            Port::B => self.inner.read_swportb_dr().pin_state(self.pin_num).into(),
         }
     }
     /// Converts the pin into an input pin with specified pull configuration.
-    pub fn into_input(self, pull: Pull) -> Input<'i, 'p> {
+    pub fn into_input(mut self, pull: Pull) -> Input<'i, 'p> {
         self.pad.set_pull(pull);
         unsafe {
             match self.port {
                 Port::A => self
                     .inner
-                    .swporta_ddr
-                    .modify(|r| r.with_direction(self.pin_num, Direction::Input)),
+                    .modify_swporta_ddr(|r| r.with_direction(self.pin_num, Direction::Input)),
                 Port::B => self
                     .inner
-                    .swportb_ddr
-                    .modify(|r| r.with_direction(self.pin_num, Direction::Input)),
+                    .modify_swportb_ddr(|r| r.with_direction(self.pin_num, Direction::Input)),
             }
         }
 
@@ -120,13 +110,11 @@ impl<'i, 'p> OutputPin for Output<'i, 'p> {
         match self.port {
             Port::A => unsafe {
                 self.inner
-                    .swporta_dr
-                    .modify(|r| r.with_pin_state(self.pin_num, PinState::Low.into()));
+                    .modify_swporta_dr(|r| r.with_pin_state(self.pin_num, PinState::Low.into()));
             },
             Port::B => unsafe {
                 self.inner
-                    .swportb_dr
-                    .modify(|r| r.with_pin_state(self.pin_num, PinState::Low.into()));
+                    .modify_swportb_dr(|r| r.with_pin_state(self.pin_num, PinState::Low.into()));
             },
         }
         Ok(())
@@ -136,13 +124,11 @@ impl<'i, 'p> OutputPin for Output<'i, 'p> {
         match self.port {
             Port::A => unsafe {
                 self.inner
-                    .swporta_dr
-                    .modify(|r| r.with_pin_state(self.pin_num, PinState::High.into()));
+                    .modify_swporta_dr(|r| r.with_pin_state(self.pin_num, PinState::High.into()));
             },
             Port::B => unsafe {
                 self.inner
-                    .swportb_dr
-                    .modify(|r| r.with_pin_state(self.pin_num, PinState::High.into()));
+                    .modify_swportb_dr(|r| r.with_pin_state(self.pin_num, PinState::High.into()));
             },
         }
         Ok(())

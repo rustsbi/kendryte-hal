@@ -1,35 +1,35 @@
-macro_rules! soc {
+macro_rules! peripheral {
     (
+        $(use $mod_path:path;)*
         $(
             $(#[$doc:meta])*
-            pub struct $Ty:ident => $paddr:expr, $DerefTy:ty;
+            pub struct $name:ident => $addr:expr, $register_block:ty, $mmio_register_block:ty;
         )+
     ) => {
+        $(use $mod_path;)*
+
         $(
             $(#[$doc])*
+            ///
+            /// # Safety
+            ///
+            /// This function is unsafe because it creates a memory-mapped I/O register block
+            /// at the specified address. The caller must ensure that:
+            /// - The address is valid and points to the correct hardware registers
+            /// - No other code is concurrently accessing the same registers
+            /// - The hardware is properly initialized
             #[allow(non_camel_case_types)]
-            pub struct $Ty(());
+            pub struct $name(());
 
-            impl $Ty {
+            impl $name {
+                /// Creates a new MMIO register block for this peripheral
+                ///
+                /// # Safety
+                ///
+                /// See struct-level safety documentation
                 #[inline]
-                pub const fn ptr() -> *const $DerefTy {
-                    $paddr as *const $DerefTy
-                }
-            }
-
-            impl core::ops::Deref for $Ty {
-                type Target = $DerefTy;
-
-                #[inline(always)]
-                fn deref(&self) -> &'static Self::Target {
-                    unsafe { &*Self::ptr() }
-                }
-            }
-
-            impl core::convert::AsRef<$DerefTy> for $Ty {
-                #[inline(always)]
-                fn as_ref(&self) -> &'static $DerefTy {
-                    unsafe { &*Self::ptr() }
+                pub const unsafe fn mmio_register_block() -> $mmio_register_block {
+                   unsafe { <$register_block>::new_mmio_at($addr) }
                 }
             }
         )+

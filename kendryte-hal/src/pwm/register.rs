@@ -1,7 +1,6 @@
 use arbitrary_int::{u2, u4, u31};
 use bitbybit::{bitenum, bitfield};
-use volatile_register::{RO, RW};
-
+use derive_mmio::Mmio;
 // These definitions are from the K230 Technical Reference Manual V0.3.1_20241118 Chapter 12.8.5
 
 /// Defines the behavior of the interrupt pending bits.
@@ -226,19 +225,20 @@ pub struct PwmCmpn {
     pub _reserved: bool,
 }
 
+#[derive(Mmio)]
 #[repr(C)]
 pub struct RegisterBlock {
     /// PWM configuration register.
-    pub pwm_cfg: RW<PwmCfg>,
+    pub pwm_cfg: PwmCfg,
     _reverser0: [u8; 0x04],
     /// PWM counter count value register.
-    pub pwm_count: RW<PwmCount>,
+    pub pwm_count: PwmCount,
     _reverser1: [u8; 0x04],
     /// PWM counter is relatively straight register.
-    pub pwms: RW<Pwms>,
+    pub pwms: Pwms,
     _reverser2: [u8; 0x0C],
     /// PWM comparator register N.
-    pub pwm_cmpn: [RW<PwmCmpn>; 4],
+    pub pwm_cmpn: [PwmCmpn; 4],
 }
 
 #[cfg(test)]

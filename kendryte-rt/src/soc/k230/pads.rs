@@ -1,41 +1,37 @@
 use crate::soc::k230::IOMUX;
 use kendryte_hal::iomux;
 use kendryte_hal::iomux::ops::PadOps;
-use kendryte_hal::iomux::pad::RegisterBlock;
-use kendryte_hal::iomux::{FlexPad, IntoFlexPad};
+use kendryte_hal::iomux::{FlexPad, IntoFlexPad, pad};
 
 pub struct Pad<const N: usize>(());
 
-impl<const N: usize> PadOps for Pad<N> {
-    fn inner(&self) -> &'static RegisterBlock {
-        unsafe {
-            let iomux: &'static iomux::RegisterBlock = &*IOMUX::ptr();
-            &iomux.pads[N]
-        }
-    }
-}
-
 impl<const N: usize> IntoFlexPad<'static> for Pad<N> {
     fn into_flex_pad(self) -> FlexPad<'static> {
-        FlexPad::new(self.inner())
+        unsafe { FlexPad::new(Pad::<N>::mmio_register_block()) }
     }
 }
 
 impl<'p, const N: usize> IntoFlexPad<'p> for &'p Pad<N> {
     fn into_flex_pad(self) -> FlexPad<'p> {
-        FlexPad::new(self.inner())
+        unsafe { FlexPad::new(Pad::<N>::mmio_register_block()) }
     }
 }
 
 impl<'p, const N: usize> IntoFlexPad<'p> for &'p mut Pad<N> {
     fn into_flex_pad(self) -> FlexPad<'p> {
-        FlexPad::new(self.inner())
+        unsafe { FlexPad::new(Pad::<N>::mmio_register_block()) }
     }
 }
 
 impl<const N: usize> Pad<N> {
-    pub(crate) fn new() -> Self {
+    fn new() -> Self {
         Pad(())
+    }
+    pub unsafe fn mmio_register_block() -> pad::MmioRegisterBlock<'static> {
+        unsafe {
+            let mut iomux = IOMUX::mmio_register_block();
+            iomux.steal_pads_unchecked(N)
+        }
     }
 }
 
