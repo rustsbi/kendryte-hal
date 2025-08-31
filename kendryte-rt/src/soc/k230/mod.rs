@@ -4,7 +4,7 @@ mod pads;
 mod peripheral;
 
 use crate::arch::rvi::Stack;
-use kendryte_hal::{clocks::Clocks, gpio, iomux, pwm, uart};
+use kendryte_hal::{clocks::Clocks, gpio, iomux, pwm, spi, uart};
 use pads::Pads;
 
 /// Platform stack size.
@@ -32,6 +32,8 @@ soc! {
     pub struct UART3 => 0x9140_3000, uart::RegisterBlock;
     /// Universal Asynchronous Receiver Transmitter 4.
     pub struct UART4 => 0x9140_4000, uart::RegisterBlock;
+    /// Serial Peripheral Interface 0.
+    pub struct SPI0  => 0x9140_5000, spi::RegisterBlock;
     /// Pulse Width Modulation 0.
     pub struct PWM0  => 0x9140_A000, pwm::RegisterBlock;
 }
@@ -54,6 +56,8 @@ pub struct Peripherals {
     pub uart3: UART3,
     /// Universal Asynchronous Receiver Transmitter 4.
     pub uart4: UART4,
+    /// Serial Peripheral Interface 0.
+    pub spi0: SPI0,
     /// Pulse Width Modulation 0.
     pub pwm0: PWM0,
 }
@@ -72,6 +76,7 @@ pub fn __rom_init_params() -> (Peripherals, Clocks) {
         uart2: UART2(()),
         uart3: UART3(()),
         uart4: UART4(()),
+        spi0: SPI0(()),
         pwm0: PWM0(()),
     };
     (peripherals, Clocks)
