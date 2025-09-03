@@ -4,7 +4,7 @@ mod pads;
 mod peripheral;
 
 use crate::arch::rvi::Stack;
-use kendryte_hal::{clocks::Clocks, gpio, iomux, uart};
+use kendryte_hal::clocks::Clocks;
 use pads::Pads;
 
 /// Platform stack size.
@@ -15,23 +15,26 @@ pub const STACK_SIZE: usize = 32 * 1024;
 #[unsafe(link_section = ".bss.uninit")]
 pub static mut STACK: Stack<STACK_SIZE> = Stack([0; STACK_SIZE]);
 
-soc! {
+peripheral! {
+    use kendryte_hal::gpio;
+    use kendryte_hal::iomux;
+    use kendryte_hal::uart;
     /// Input/Output Multiplexer.
-    pub struct IOMUX => 0x9110_5000, iomux::RegisterBlock;
+    pub struct IOMUX => 0x9110_5000, iomux::RegisterBlock, iomux::MmioRegisterBlock<'static>;
     /// General Purpose Input/Output 0.
-    pub struct GPIO0 => 0x9140_B000, gpio::RegisterBlock;
+    pub struct GPIO0 => 0x9140_B000, gpio::RegisterBlock, gpio::MmioRegisterBlock<'static>;
     /// General Purpose Input/Output 1.
-    pub struct GPIO1 => 0x9140_C000, gpio::RegisterBlock;
+    pub struct GPIO1 => 0x9140_C000, gpio::RegisterBlock, gpio::MmioRegisterBlock<'static>;
     /// Universal Asynchronous Receiver Transmitter 0.
-    pub struct UART0 => 0x9140_0000, uart::RegisterBlock;
+    pub struct UART0 => 0x9140_0000, uart::RegisterBlock, uart::MmioRegisterBlock<'static>;
     /// Universal Asynchronous Receiver Transmitter 1.
-    pub struct UART1 => 0x9140_1000, uart::RegisterBlock;
+    pub struct UART1 => 0x9140_1000, uart::RegisterBlock, uart::MmioRegisterBlock<'static>;
     /// Universal Asynchronous Receiver Transmitter 2.
-    pub struct UART2 => 0x9140_2000, uart::RegisterBlock;
+    pub struct UART2 => 0x9140_2000, uart::RegisterBlock, uart::MmioRegisterBlock<'static>;
     /// Universal Asynchronous Receiver Transmitter 3.
-    pub struct UART3 => 0x9140_3000, uart::RegisterBlock;
+    pub struct UART3 => 0x9140_3000, uart::RegisterBlock, uart::MmioRegisterBlock<'static>;
     /// Universal Asynchronous Receiver Transmitter 4.
-    pub struct UART4 => 0x9140_4000, uart::RegisterBlock;
+    pub struct UART4 => 0x9140_4000, uart::RegisterBlock, uart::MmioRegisterBlock<'static>;
 }
 
 /// Peripherals available on ROM start.

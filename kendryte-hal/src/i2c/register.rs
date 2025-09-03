@@ -1,204 +1,205 @@
-use volatile_register::RW;
+use derive_mmio::Mmio;
 
 /// I2C Register Block.
 ///
 /// This structure represents the memory-mapped registers of a I2C peripheral.
 /// Each field corresponds to a specific register or group of registers.
+#[derive(Mmio)]
 #[repr(C)]
 pub struct RegisterBlock {
     /// I2C Control Register.
     /// This register can be written only when the I2C controller is disabled, which corresponds to the IC_ENABLE\[0\] register being set to 0.
     /// Writes at other times have no effect.
-    pub con: RW<u32>,
+    pub con: u32,
     /// I2C Target Address Register.
     /// This register stores the target I2C address for master mode operations.
-    pub tar: RW<u32>,
+    pub tar: u32,
     /// I2C Slave Address Register.
     /// This register holds the slave address when operating in slave mode.
-    pub sar: RW<u32>,
+    pub sar: u32,
     /// I2C High Speed Master Mode Code Address Register.
     /// This register contains the master code address for high speed mode.
-    pub hs_maddr: RW<u32>,
+    pub hs_maddr: u32,
     /// I2C Rx/Tx Data Buffer and Command Register.
     /// This is the register the CPU writes to when filling the TX FIFO and reads from when retrieving bytes from RX FIFO.
-    pub data_cmd: RW<u32>,
+    pub data_cmd: u32,
     /// Standard Speed I2C Clock SCL High Count Register.
     /// This register controls the SCL clock high time for standard speed mode.
     /// Ultra-Fast Speed I2C Clock SCL High Count Register.
     /// This register controls the SCL clock high time for ultra-fast speed mode.
-    pub ss_scl_hcnt_ufm_scl_hcnt: RW<u32>,
+    pub ss_scl_hcnt_ufm_scl_hcnt: u32,
     /// Standard Speed I2C Clock SCL Low Count Register.
     /// This register controls the SCL clock low time for standard speed mode.
     /// Ultra-Fast Speed I2C Clock SCL Low Count Register.
     /// This register controls the SCL clock low time for ultra-fast speed mode.
-    pub ss_scl_lcnt_ufm_scl_lcnt: RW<u32>,
+    pub ss_scl_lcnt_ufm_scl_lcnt: u32,
     /// Fast Mode or Fast Mode Plus I2C Clock SCL High Count Register.
     /// This register controls the SCL clock high time for fast modes.
     /// Ultra-Fast Speed mode TBuf Idle Count Register.
     /// This register controls the bus idle time for ultra-fast speed mode.
-    pub fs_scl_hcnt_ufm_tbuf_cnt: RW<u32>,
+    pub fs_scl_hcnt_ufm_tbuf_cnt: u32,
     /// Fast Mode or Fast Mode Plus I2C Clock SCL Low Count Register.
     /// This register controls the SCL clock low time for fast modes.
-    pub fs_scl_lcnt: RW<u32>,
+    pub fs_scl_lcnt: u32,
     /// High Speed I2C Clock SCL High Count Register.
     /// This register controls the SCL clock high time for high speed mode.
-    pub hs_scl_hcnt: RW<u32>,
+    pub hs_scl_hcnt: u32,
     /// High Speed I2C Clock SCL Low Count Register.
     /// This register controls the SCL clock low time for high speed mode.
-    pub hs_scl_lcnt: RW<u32>,
+    pub hs_scl_lcnt: u32,
     /// I2C Interrupt Status Register.
     /// Each bit in this register has a corresponding mask bit in the IC_INTR_MASK register.
     /// These bits are cleared by reading the matching interrupt clear register.
     /// The unmasked raw versions of these bits are available in the IC_RAW_INTR_STAT register.
-    pub intr_stat: RW<u32>,
+    pub intr_stat: u32,
     /// I2C Interrupt Mask Register.
     /// These bits mask their corresponding interrupt status bits.
     /// This register is active low; a value of 0 masks the interrupt, whereas a value of 1 unmasks the interrupt.
-    pub intr_mask: RW<u32>,
+    pub intr_mask: u32,
     /// I2C Raw Interrupt Status Register.
     /// Unlike the IC_INTR_STAT register, these bits are not masked so they always show the true status of the I2C controller.
-    pub raw_intr_stat: RW<u32>,
+    pub raw_intr_stat: u32,
     /// I2C Receive FIFO Threshold Register.
     /// This register controls the threshold level for receive FIFO operations.
-    pub rx_tl: RW<u32>,
+    pub rx_tl: u32,
     /// I2C Transmit FIFO Threshold Register.
     /// This register controls the threshold level for transmit FIFO operations.
-    pub tx_tl: RW<u32>,
+    pub tx_tl: u32,
     /// Clear Combined and Individual Interrupt Register.
     /// This register clears all active interrupts.
-    pub clr_intr: RW<u32>,
+    pub clr_intr: u32,
     /// Clear RX_UNDER Interrupt Register.
     /// This register clears the RX_UNDER interrupt.
-    pub clr_rx_under: RW<u32>,
+    pub clr_rx_under: u32,
     /// Clear RX_OVER Interrupt Register.
     /// This register clears the RX_OVER interrupt.
-    pub clr_rx_over: RW<u32>,
+    pub clr_rx_over: u32,
     /// Clear TX_OVER Interrupt Register.
     /// This register clears the TX_OVER interrupt.
-    pub clr_tx_over: RW<u32>,
+    pub clr_tx_over: u32,
     /// Clear RD_REQ Interrupt Register.
     /// This register clears the RD_REQ interrupt.
-    pub clr_rd_req: RW<u32>,
+    pub clr_rd_req: u32,
     /// Clear TX_ABRT Interrupt Register.
     /// This register clears the TX_ABRT interrupt.
-    pub clr_tx_abrt: RW<u32>,
+    pub clr_tx_abrt: u32,
     /// Clear RX_DONE Interrupt Register.
     /// This register clears the RX_DONE interrupt.
-    pub clr_rx_done: RW<u32>,
+    pub clr_rx_done: u32,
     /// Clear ACTIVITY Interrupt Register.
     /// This register clears the ACTIVITY interrupt.
-    pub clr_activity: RW<u32>,
+    pub clr_activity: u32,
     /// Clear STOP_DET Interrupt Register.
     /// This register clears the STOP_DET interrupt.
-    pub clr_stop_det: RW<u32>,
+    pub clr_stop_det: u32,
     /// Clear START_DET Interrupt Register.
     /// This register clears the START_DET interrupt.
-    pub clr_start_det: RW<u32>,
+    pub clr_start_det: u32,
     /// Clear GEN_CALL Interrupt Register.
     /// This register clears the GEN_CALL interrupt.
-    pub clr_gen_call: RW<u32>,
+    pub clr_gen_call: u32,
     /// I2C Enable Register.
     /// This register enables or disables the I2C controller.
-    pub enable: RW<u32>,
+    pub enable: u32,
     /// I2C Status Register.
     /// This is a read-only register used to indicate the current transfer status and FIFO status.
     /// The status register may be read at any time.
     /// None of the bits in this register request an interrupt.
-    pub status: RW<u32>,
+    pub status: u32,
     /// I2C Transmit FIFO Level Register.
     /// This register contains the number of valid data entries in the transmit FIFO buffer.
-    pub txflr: RW<u32>,
+    pub txflr: u32,
     /// I2C Receive FIFO Level Register.
     /// This register contains the number of valid data entries in the receive FIFO buffer.
-    pub rxflr: RW<u32>,
+    pub rxflr: u32,
     /// I2C SDA Hold Time Length Register.
     /// This register controls the SDA hold time.
-    pub sda_hold: RW<u32>,
+    pub sda_hold: u32,
     /// I2C Transmit Abort Source Register.
     /// This register indicates the source of a transmission abort.
-    pub tx_abrt_source: RW<u32>,
+    pub tx_abrt_source: u32,
     /// Generate Slave Data NACK Register.
     /// The register is used to generate a NACK for the data part of a transfer when I2C controller is acting as a slave-receiver.
-    pub slv_data_nack_only: RW<u32>,
+    pub slv_data_nack_only: u32,
     /// DMA Control Register.
     /// This register is only valid when I2C controller is configured with a set of DMA Controller interface signals (IC_HAS_DMA = 1).
-    pub dma_cr: RW<u32>,
+    pub dma_cr: u32,
     /// DMA Transmit Data Level Register.
     /// This register is only valid when the I2C controller is configured with a set of DMA interface signals (IC_HAS_DMA = 1).
-    pub dma_tdlr: RW<u32>,
+    pub dma_tdlr: u32,
     /// I2C Receive Data Level Register.
     /// This register is only valid when I2C controller is configured with a set of DMA interface signals (IC_HAS_DMA = 1).
-    pub dma_rdlr: RW<u32>,
+    pub dma_rdlr: u32,
     /// I2C SDA Setup Register.
     /// Controls SDA to SCL rising edge delay for slave-transmitter read operations.
-    pub sda_setup: RW<u32>,
+    pub sda_setup: u32,
     /// I2C ACK General Call Register.
     /// The register controls whether I2C controller responds with a ACK or NACK when it receives an I2C General Call address.
-    pub ack_general_call: RW<u32>,
+    pub ack_general_call: u32,
     /// I2C Enable Status Register.
     /// The register is used to report the I2C controller hardware status when the IC_ENABLE\[0\] register is set from 1 to 0;
     /// that is, when I2C controller is disabled.
-    pub enable_status: RW<u32>,
+    pub enable_status: u32,
     /// I2C SS, FS or FM+ spike suppression limit Register.
     /// This register controls spike suppression in various speed modes.
     /// I2C UFM spike suppression limit Register.
     /// This register controls spike suppression in Ultra-Fast mode.
-    pub fs_spklen_ufm_spklen: RW<u32>,
+    pub fs_spklen_ufm_spklen: u32,
     /// I2C HS spike suppression limit Register.
     /// This register controls spike suppression in High Speed mode.
-    pub hs_spklen: RW<u32>,
+    pub hs_spklen: u32,
     /// Clear RESTART_DET Interrupt Register.
     /// This register clears the RESTART_DET interrupt.
-    pub clr_restart_det: RW<u32>,
+    pub clr_restart_det: u32,
     /// I2C SCL Stuck at Low Timeout Register.
     /// This register controls timeout detection for SCL stuck low condition.
-    pub scl_stuck_at_low_timeout: RW<u32>,
+    pub scl_stuck_at_low_timeout: u32,
     /// I2C SDA Stuck at Low Timeout Register.
     /// This register controls timeout detection for SDA stuck low condition.
-    pub sda_stuck_at_low_timeout: RW<u32>,
+    pub sda_stuck_at_low_timeout: u32,
     /// Clear SCL Stuck at Low Detect Interrupt Register.
     /// This register clears the SCL stuck low detection interrupt.
-    pub clr_scl_stuck_det: RW<u32>,
+    pub clr_scl_stuck_det: u32,
     /// I2C Device-ID Register.
     /// This register contains device identification information.
-    pub device_id: RW<u32>,
+    pub device_id: u32,
     /// SMBus Slave Clock Extend Timeout Register.
     /// This register controls slave clock extension timeout.
-    pub smbus_clk_low_sext: RW<u32>,
+    pub smbus_clk_low_sext: u32,
     /// SMBus Master Clock Extend Timeout Register.
     /// This register controls master clock extension timeout.
-    pub smbus_clk_low_mext: RW<u32>,
+    pub smbus_clk_low_mext: u32,
     /// SMBus Master THigh MAX Bus-idle count Register.
     /// This register controls bus idle detection timing.
-    pub smbus_thigh_max_idle_count: RW<u32>,
+    pub smbus_thigh_max_idle_count: u32,
     /// SMBUS Interrupt Status Register.
     /// This register shows the status of SMBus interrupts.
-    pub smbus_intr_stat: RW<u32>,
+    pub smbus_intr_stat: u32,
     /// SMBus Interrupt Mask Register.
     /// This register controls which SMBus interrupts are enabled.
-    pub smbus_intr_mask: RW<u32>,
+    pub smbus_intr_mask: u32,
     /// SMBus Raw Interrupt Status Register.
     /// This register shows the raw status of SMBus interrupts.
-    pub smbus_raw_intr_stat: RW<u32>,
+    pub smbus_raw_intr_stat: u32,
     /// SMBus Clear Interrupt Register.
     /// This register clears SMBus interrupts.
-    pub clr_smbus_intr: RW<u32>,
+    pub clr_smbus_intr: u32,
     /// I2C Optional Slave Address Register.
     /// This register holds an optional slave address for SMBus mode.
-    pub optional_sar: RW<u32>,
+    pub optional_sar: u32,
     /// SMBUS ARP UDID LSB Register.
     /// This register holds the least significant bits of the UDID for SMBus ARP.
-    pub smbus_udid_lsb: RW<u32>,
+    pub smbus_udid_lsb: u32,
     _reversed0: [u8; 0x14],
     /// Component Parameter Register 1.
     /// This register contains component configuration parameters.
-    pub comp_param_1: RW<u32>,
+    pub comp_param_1: u32,
     /// I2C Component Version Register.
     /// This register contains the component version number.
-    pub comp_version: RW<u32>,
+    pub comp_version: u32,
     /// I2C Component Type Register.
     /// This register identifies the type of I2C component.
-    pub comp_type: RW<u32>,
+    pub comp_type: u32,
 }
 
 #[cfg(test)]

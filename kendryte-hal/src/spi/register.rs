@@ -1,7 +1,6 @@
 use arbitrary_int::{u1, u2, u3, u4, u5, u7, u9, u14, u15, u17, u20, u24, u25, u26, u29, u30, u31};
 use bitbybit::{bitenum, bitfield};
-use volatile_register::{RO, RW};
-
+use derive_mmio::Mmio;
 // These definitions are from the K230 Technical Reference Manual
 
 /// Working mode for the SPI peripheral.
@@ -1218,123 +1217,124 @@ pub struct DoneClearReg {
 ///
 /// Represents the memory-mapped registers for the SPI peripheral.
 /// Each field corresponds to a specific hardware register as described in the K230 manual.
+#[derive(Mmio)]
 #[repr(C)]
 pub struct RegisterBlock {
     /// Control Register 0.
     /// Contains basic SPI configuration settings.
-    ctrlr0: RW<ControlReg0>,
+    ctrlr0: ControlReg0,
     /// Control Register 1.
     /// Contains additional SPI configuration settings.
-    ctrlr1: RW<ControlReg1>,
+    ctrlr1: ControlReg1,
     /// SSI Enable Register.
     /// Controls the enabling/disabling of the SSI interface.
-    ssienr: RW<SsiEnableReg>,
+    ssienr: SsiEnableReg,
     /// Microwire Control Register.
     /// Controls the Microwire interface operations.
-    mwcr: RW<MicrowireControlReg>,
+    mwcr: MicrowireControlReg,
     /// Slave Enable Register.
     /// Controls which slave devices are selected.
-    ser: RW<SlaveEnableReg>,
+    ser: SlaveEnableReg,
     /// Baud Rate Select Register.
     /// Sets the SPI communication speed.
-    baudr: RW<BaudRateSelectReg>,
+    baudr: BaudRateSelectReg,
     /// Transmit FIFO Threshold Level Register.
     /// Sets the threshold for TX FIFO interrupts.
-    txftlr: RW<TransmitFifoThresholdLevelReg>,
+    txftlr: TransmitFifoThresholdLevelReg,
     /// Receive FIFO Threshold Level Register.
     /// Sets the threshold for RX FIFO interrupts.
-    rxftlr: RW<ReceiveFifoThresholdLevelReg>,
+    rxftlr: ReceiveFifoThresholdLevelReg,
     /// Transmit FIFO Level Register.
     /// Indicates current TX FIFO fill level.
-    txflr: RW<TransmitFifoLevelReg>,
+    txflr: TransmitFifoLevelReg,
     /// Receive FIFO Level Register.
     /// Indicates current RX FIFO fill level.
-    rxflr: RW<ReceiveFifoLevelReg>,
+    rxflr: ReceiveFifoLevelReg,
     /// Status Register.
     /// Contains current SPI status information.
-    sr: RW<StatusReg>,
+    sr: StatusReg,
     /// Interrupt Mask Register.
     /// Controls which interrupts are enabled.
-    imr: RW<InterruptMaskReg>,
+    imr: InterruptMaskReg,
     /// Interrupt Status Register.
     /// Shows current interrupt status.
-    isr: RW<InterruptStatusReg>,
+    isr: InterruptStatusReg,
     /// Raw Interrupt Status Register.
     /// Shows unmasked interrupt status.
-    risr: RW<RawInterruptStatusReg>,
+    risr: RawInterruptStatusReg,
     /// Transmit FIFO Error Interrupt Clear Register.
     /// Clears TX FIFO error interrupts.
-    txeicr: RW<TransmitFifoErrorInterruptClearReg>,
+    txeicr: TransmitFifoErrorInterruptClearReg,
     /// Receive FIFO Overflow Interrupt Clear Register.
     /// Clears RX FIFO overflow interrupts.
-    rxoicr: RW<ReceiveFifoOverflowInterruptClearReg>,
+    rxoicr: ReceiveFifoOverflowInterruptClearReg,
     /// Receive FIFO Underflow Interrupt Clear Register.
     /// Clears RX FIFO underflow interrupts.
-    rxuicr: RW<ReceiveFifoUnderflowInterruptClearReg>,
+    rxuicr: ReceiveFifoUnderflowInterruptClearReg,
     /// Multi-Master Interrupt Clear Register.
     /// Clears multi-master conflict interrupts.
-    msticr: RW<MultiMasterInterruptClearReg>,
+    msticr: MultiMasterInterruptClearReg,
     /// Interrupt Clear Register.
     /// Clears all interrupts.
-    icr: RW<InterruptClearReg>,
+    icr: InterruptClearReg,
     /// DMA Control Register.
     /// Controls DMA operations.
-    dmacr: RW<DmaControlReg>,
+    dmacr: DmaControlReg,
     /// DMA Transmit Data Level Register.
     /// Sets DMA TX data threshold.
     /// Destination Burst Length Register.
     /// Sets AXI destination burst length.
-    dmatdlr_axiawlen: RW<DmaTransmitDataLevelReg>,
+    dmatdlr_axiawlen: DmaTransmitDataLevelReg,
     /// DMA Receive Data Level.
     /// Shows current DMA RX data level.
     /// Source Burst Length.
     /// Sets AXI source burst length.
-    dmardlr_axiarlen: RW<DmaReceiveDataLevelReg>,
+    dmardlr_axiarlen: DmaReceiveDataLevelReg,
     /// Identification Register.
     /// Contains peripheral identification information.
-    idr: RW<IdentificationReg>,
+    idr: IdentificationReg,
     /// Component version Register.
     /// Shows hardware component version.
-    ssi_version_id: RW<ComponentVersionReg>,
+    ssi_version_id: ComponentVersionReg,
     /// Data Register.
     /// Array of data registers for SPI communication.
     // Control Register.
     /// Contains SSI control settings.
-    dr_ssi_ctrl: [RW<DataReg>; 36],
+    dr_ssi_ctrl: [DataReg; 36],
     /// RX Sample Delay Register.
     /// Controls RX sampling delay.
-    rx_sample_delay: RW<RxSampleDelayReg>,
+    rx_sample_delay: RxSampleDelayReg,
     /// SPI Control 0 Register.
     /// Contains primary SPI control settings.
-    spi_ctrlr0: RW<SpiControlReg0>,
+    spi_ctrlr0: SpiControlReg0,
     /// Transmit Drive Edge Register.
     /// Controls TX signal edge timing.
-    ddr_drive_edge: RW<DdrDriveEdgeReg>,
+    ddr_drive_edge: DdrDriveEdgeReg,
     _reversed0: [u8; 0x1C],
     /// SPI Control 1 register.
     /// Contains secondary SPI control settings.
-    spi_ctrlr1: RW<SpiControlReg1>,
+    spi_ctrlr1: SpiControlReg1,
     /// SPI Transmit Error Interrupt Clear Register.
     /// Clears SPI TX error interrupts.
-    spitecr: RW<SpiTransmitErrorClearReg>,
+    spitecr: SpiTransmitErrorClearReg,
     /// SPI Device Register.
     /// Controls SPI device settings.
-    spidr: RW<SpiDeviceReg>,
+    spidr: SpiDeviceReg,
     /// SPI Device Address Register.
     /// Sets SPI device addressing.
-    spiar: RW<SpiAddressReg>,
+    spiar: SpiAddressReg,
     /// AXI Address Register 0.
     /// Contains primary AXI address settings.
-    axiar0: RW<AxiAddressReg0>,
+    axiar0: AxiAddressReg0,
     /// AXI Address Register 1.
     /// Contains secondary AXI address settings.
-    axiar1: RW<AxiAddressReg1>,
+    axiar1: AxiAddressReg1,
     /// AXI Master Error Interrupt Clear Register.
     /// Clears AXI master error interrupts.
-    axiecr: RW<AxiErrorClearReg>,
+    axiecr: AxiErrorClearReg,
     /// Transfer Done Clear Interrupt Clear Register.
     /// Clears transfer completion interrupts.
-    donecr: RW<DoneClearReg>,
+    donecr: DoneClearReg,
 }
 #[cfg(test)]
 mod tests {

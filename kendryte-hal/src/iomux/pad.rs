@@ -1,11 +1,12 @@
 use arbitrary_int::{u1, u3};
 use bitbybit::{bitenum, bitfield};
-use volatile_register::RW;
+use derive_mmio::Mmio;
 
 /// Pad Register Block.
+#[derive(Mmio)]
 #[repr(C)]
 pub struct RegisterBlock {
-    pub pad: RW<Pad>,
+    pub pad: Pad,
 }
 
 /// SlewRate controls the speed of the output signal transition.

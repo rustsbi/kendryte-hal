@@ -1,7 +1,7 @@
 use crate::soc::k230::pads::Pad;
 use crate::soc::k230::{GPIO0, GPIO1};
 use arbitrary_int::u3;
-use kendryte_hal::gpio::RegisterBlock;
+use kendryte_hal::gpio::MmioRegisterBlock;
 use kendryte_hal::gpio::pad::{IntoGpio, Port};
 use kendryte_hal::instance::{Instance, Numbered};
 use kendryte_hal::iomux::ops::PadOps;
@@ -15,33 +15,33 @@ macro_rules! gpio {
     ) => {
         $(
             impl Instance<'static> for $GPIOx {
-                type R = RegisterBlock;
+                type R = MmioRegisterBlock<'static>;
 
                 #[inline]
-                fn inner(self) -> &'static Self::R {
-                    unsafe { &*<$GPIOx>::ptr() }
+                fn inner(self) -> Self::R {
+                    unsafe { <$GPIOx>::mmio_register_block() }
                 }
             }
 
             impl Numbered<'static, $n> for $GPIOx {}
 
             impl<'i> Instance<'i> for &'i $GPIOx {
-                type R = RegisterBlock;
+                type R = MmioRegisterBlock<'static>;
 
                 #[inline]
-                fn inner(self) -> &'static Self::R {
-                    unsafe { &*<$GPIOx>::ptr() }
+                fn inner(self) -> Self::R {
+                    unsafe { <$GPIOx>::mmio_register_block() }
                 }
             }
 
             impl<'i> Numbered<'i, $n> for &'i $GPIOx {}
 
             impl<'i> Instance<'i> for &'i mut $GPIOx {
-                type R = RegisterBlock;
+                type R = MmioRegisterBlock<'static>;
 
                 #[inline]
-                fn inner(self) -> &'static Self::R {
-                    unsafe { &*<$GPIOx>::ptr() }
+                fn inner(self) -> Self::R {
+                    unsafe { <$GPIOx>::mmio_register_block() }
                 }
             }
 
@@ -68,9 +68,10 @@ macro_rules! pad_gpio {
 
                 #[inline]
                 fn into_gpio(self) -> FlexPad<'static> {
-                    self.set_bidirectional()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_bidirectional()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
 
@@ -80,9 +81,10 @@ macro_rules! pad_gpio {
 
                 #[inline]
                 fn into_gpio(self) -> FlexPad<'p> {
-                      self.set_bidirectional()
-                          .set_function_select(u3::new($function_select));
-                      self.into_flex_pad()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_bidirectional()
+                        .set_function_select(u3::new($function_select));
+                    flex_pad
                 }
             }
 
@@ -92,9 +94,10 @@ macro_rules! pad_gpio {
 
                 #[inline]
                 fn into_gpio(self) -> FlexPad<'p> {
-                      self.set_bidirectional()
-                          .set_function_select(u3::new($function_select));
-                      self.into_flex_pad()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_bidirectional()
+                        .set_function_select(u3::new($function_select));
+                    flex_pad
                 }
             }
         )+

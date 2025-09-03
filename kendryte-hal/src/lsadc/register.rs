@@ -1,27 +1,28 @@
 use arbitrary_int::{u4, u12};
 use bitbybit::{bitenum, bitfield};
-use volatile_register::RW;
+use derive_mmio::Mmio;
 
 /// LSADC Register Block.
 ///
 /// This structure represents the memory-mapped registers of a LSADC peripheral.
 /// Each field corresponds to a specific register or group of registers.
+#[derive(Mmio)]
 #[repr(C)]
 pub struct RegisterBlock {
     /// LSADC initializes the self-calibrating control register.
-    pub trim: RW<Trim>,
+    pub trim: Trim,
     /// LSADC Data conversion control register.
-    pub cfg: RW<Cfg>,
+    pub cfg: Cfg,
     /// LSADC output mode selection control register.
-    pub mode: RW<Mode>,
+    pub mode: Mode,
     /// LSADC threshold interrupt control register.
-    pub thsd: RW<Thsd>,
+    pub thsd: Thsd,
     /// LSADC's DMA error interrupt register.
-    pub dma_intr: RW<DmaIntr>,
+    pub dma_intr: DmaIntr,
     /// Input channel N Digital signal output.
-    pub data: [RW<Data>; 6],
+    pub data: [Data; 6],
     /// Continuous sampling channel N digital signal output.
-    pub data_dma: [RW<DataDma>; 3],
+    pub data_dma: [DataDma; 3],
 }
 
 /// Reference voltage selection for internal voltage reference.

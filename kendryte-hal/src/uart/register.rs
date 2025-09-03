@@ -1,91 +1,101 @@
 use arbitrary_int::{u2, u9};
 use bitbybit::{bitenum, bitfield};
-use volatile_register::{RO, RW};
+use derive_mmio::Mmio;
 
 /// UART Register Block.
 ///
 /// This structure represents the memory-mapped registers of a UART peripheral.
 /// Each field corresponds to a specific register or group of registers.
+#[derive(Mmio)]
 #[repr(C)]
 pub struct RegisterBlock {
     /// Receive Buffer Register / Transmit Holding Register / Divisor Latch LSB.
-    pub rbr_thr_dll: RW<RbrThrDll>,
+    pub rbr_thr_dll: RbrThrDll,
     /// Interrupt Enable Register / Divisor Latch MSB.
-    pub ier_dlh: RW<IerDlh>,
+    pub ier_dlh: IerDlh,
     /// Interrupt Identification Register / FIFO Control Register.
-    pub iir_fcr: RW<IirFcr>,
+    pub iir_fcr: IirFcr,
     /// Line Control Register.
-    pub lcr: RW<Lcr>,
+    pub lcr: Lcr,
     /// Modem Control Register.
-    pub mcr: RW<Mcr>,
+    pub mcr: Mcr,
     /// Line Status Register.
-    pub lsr: RO<Lsr>,
+    #[mmio(PureRead)]
+    pub lsr: Lsr,
     /// Modem Status Register.
-    pub msr: RO<Msr>,
+    #[mmio(PureRead)]
+    pub msr: Msr,
     /// Scratchpad Register.
-    pub scr: RW<Scr>,
+    pub scr: Scr,
     /// Low Power Divisor Latch Low Register.
-    pub lpdll: RW<u32>,
+    pub lpdll: u32,
     /// Low Power Divisor Latch High Register.
-    pub lpdlh: RW<u32>,
+    pub lpdlh: u32,
     _reserved0: [u8; 0x08],
     /// Shadow Receive Buffer Register / Transmit Holding Register.
-    pub srbr_sthr: [RW<u32>; 16],
+    pub srbr_sthr: [u32; 16],
     /// FIFO Access Register.
-    pub far: RW<u32>,
+    pub far: u32,
     /// Transmit FIFO Read Register.
-    pub tfr: RO<u32>,
+    #[mmio(PureRead)]
+    pub tfr: u32,
     /// Receive FIFO Write Register.
-    pub rfw: RW<u32>,
+    pub rfw: u32,
     /// UART Status Register.
-    pub usr: RO<u32>,
+    #[mmio(PureRead)]
+    pub usr: u32,
     /// Transmit FIFO Level.
-    pub tfl: RO<u32>,
+    #[mmio(PureRead)]
+    pub tfl: u32,
     /// Receive FIFO Level.
-    pub rfl: RO<u32>,
+    #[mmio(PureRead)]
+    pub rfl: u32,
     /// Software Reset Register.
-    pub srr: RW<u32>,
+    pub srr: u32,
     /// Shadow Request to Send.
-    pub srts: RW<u32>,
+    pub srts: u32,
     /// Shadow Break Control Register.
-    pub sbcr: RW<u32>,
+    pub sbcr: u32,
     /// Shadow DMA Mode.
-    pub sdmam: RW<u32>,
+    pub sdmam: u32,
     /// Shadow FIFO Enable.
-    pub sfe: RW<u32>,
+    pub sfe: u32,
     /// Shadow Receive Trigger.
-    pub srt: RW<u32>,
+    pub srt: u32,
     /// Shadow Transmit Empty Trigger.
-    pub stet: RW<u32>,
+    pub stet: u32,
     /// Halt Transmit.
-    pub htx: RW<u32>,
+    pub htx: u32,
     /// DMA Software Acknowledge.
-    pub dmasa: RW<u32>,
+    pub dmasa: u32,
     /// Transceiver Control Register.
-    pub tcr: RW<u32>,
+    pub tcr: u32,
     /// Driver Output Enable Register.
-    pub de_en: RW<u32>,
+    pub de_en: u32,
     /// Receiver Output Enable Register.
-    pub re_en: RW<u32>,
+    pub re_en: u32,
     /// Driver Output Enable Timing Register.
-    pub det: RW<u32>,
+    pub det: u32,
     /// TurnAround Timing Register.
-    pub tat: RW<u32>,
+    pub tat: u32,
     /// Divisor Latch Fraction Register.
-    pub dlf: RW<u32>,
+    pub dlf: u32,
     /// Receive Address Register.
-    pub rar: RW<u32>,
+    pub rar: u32,
     /// Transmit Address Register.
-    pub tar: RW<u32>,
+    pub tar: u32,
     /// Line Extended Control Register.
-    pub lcr_ext: RW<u32>,
+    pub lcr_ext: u32,
     _reserved1: [u8; 0x24],
     /// Component Parameter Register.
-    pub cpr: RO<u32>,
+    #[mmio(PureRead)]
+    pub cpr: u32,
     /// UART Component Version.
-    pub ucv: RO<u32>,
+    #[mmio(PureRead)]
+    pub ucv: u32,
     /// Component Type Register.
-    pub ctr: RO<u32>,
+    #[mmio(PureRead)]
+    pub ctr: u32,
 }
 
 /// General UART register: can act as Receive Buffer Register (RBR), Transmitter Holding Register (THR), or Divisor Latch LSB (DLL).

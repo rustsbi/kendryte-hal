@@ -7,7 +7,7 @@ pub use tx::BlockingUartTx;
 use super::pad::FlexPad;
 use crate::clocks::Clocks;
 use crate::instance::Numbered;
-use crate::uart::RegisterBlock;
+use crate::uart::MmioRegisterBlock;
 use crate::uart::config::{Config, set_divisor, set_parity_mode, set_stop_bits, set_word_length};
 use crate::uart::config::{disable_fifo, enable_fifo};
 use crate::uart::error::UartError;
@@ -15,13 +15,13 @@ use crate::uart::pad::{IntoUartSin, IntoUartSout};
 use core::marker::PhantomData;
 
 /// Checks if the UART is ready to read data.
-pub(crate) fn read_ready(uart: &RegisterBlock) -> bool {
-    uart.lsr.read().data_ready()
+pub(crate) fn read_ready(uart: &MmioRegisterBlock) -> bool {
+    uart.read_lsr().data_ready()
 }
 
 /// Checks if the UART is ready to write data.
-pub(crate) fn write_ready(uart: &RegisterBlock) -> bool {
-    uart.lsr.read().transmitter_empty() || uart.lsr.read().transmitter_holding_empty()
+pub(crate) fn write_ready(uart: &mut MmioRegisterBlock) -> bool {
+    uart.read_lsr().transmitter_empty() || uart.read_lsr().transmitter_holding_empty()
 }
 
 /// Reads data from UART in a blocking manner.
@@ -29,11 +29,11 @@ pub(crate) fn write_ready(uart: &RegisterBlock) -> bool {
 /// This function attempts to read data from the UART into the provided buffer.
 /// It will read as much data as possible until either the buffer is full or no more data is available.
 /// Returns the number of bytes actually read.
-pub(crate) fn blocking_read(uart: &RegisterBlock, buf: &mut [u8]) -> usize {
+pub(crate) fn blocking_read(uart: &MmioRegisterBlock, buf: &mut [u8]) -> usize {
     let mut count = 0_usize;
     for ch in buf {
         if read_ready(uart) {
-            *ch = uart.rbr_thr_dll.read().receiver_buffer();
+            *ch = uart.read_rbr_thr_dll().receiver_buffer();
             count += 1;
         } else {
             break;
@@ -47,12 +47,12 @@ pub(crate) fn blocking_read(uart: &RegisterBlock, buf: &mut [u8]) -> usize {
 /// This function attempts to write data from the provided buffer to the UART.
 /// It will write as much data as possible until either all data is written or the FIFO becomes full.
 /// Returns the number of bytes actually written.
-pub(crate) fn blocking_write(uart: &RegisterBlock, buf: &[u8]) -> usize {
+pub(crate) fn blocking_write(uart: &mut MmioRegisterBlock, buf: &[u8]) -> usize {
     let mut count = 0_usize;
     for ch in buf {
         if write_ready(uart) {
             unsafe {
-                uart.rbr_thr_dll.modify(|r| r.with_transmitter_holding(*ch));
+                uart.modify_rbr_thr_dll(|r| r.with_transmitter_holding(*ch));
             }
             count += 1;
         } else {
@@ -65,8 +65,8 @@ pub(crate) fn blocking_write(uart: &RegisterBlock, buf: &[u8]) -> usize {
 /// Flushes the UART transmitter by waiting until all data has been sent.
 ///
 /// This function blocks until the transmitter is completely empty.
-pub(crate) fn blocking_flush(uart: &RegisterBlock) {
-    while !uart.lsr.read().transmitter_empty() {
+pub(crate) fn blocking_flush(uart: &mut MmioRegisterBlock) {
+    while !uart.read_lsr().transmitter_empty() {
         core::hint::spin_loop();
     }
 }
@@ -75,7 +75,7 @@ pub(crate) fn blocking_flush(uart: &RegisterBlock) {
 ///
 /// This struct implements blocking read and write operations for UART communication.
 pub struct BlockingUart<'i, 't, 'r> {
-    inner: &'static RegisterBlock,
+    inner: MmioRegisterBlock<'static>,
     tx: Option<BlockingUartTx<'i, 't>>,
     rx: Option<BlockingUartRx<'i, 'r>>,
     _marker: PhantomData<&'i ()>,
@@ -87,14 +87,14 @@ impl<'i, 't, 'r> BlockingUart<'i, 't, 'r> {
     /// This function initializes the UART with the provided configuration parameters.
     /// Returns a new BlockingUart instance.
     pub fn new<const N: usize>(
-        instance: impl Numbered<'i, N, R = RegisterBlock>,
+        instance: impl Numbered<'i, N, R = MmioRegisterBlock<'static>>,
         tx: Option<impl IntoUartSout<'t, N>>,
         rx: Option<impl IntoUartSin<'r, N>>,
         config: Config,
         clocks: Clocks,
     ) -> Self {
-        let inner = instance.inner();
-        Self::configure::<N>(inner, config, clocks);
+        let mut inner = instance.inner();
+        Self::configure::<N>(&mut inner, config, clocks);
 
         let mut blocking_uart_tx = None;
         let mut blocking_uart_rx = None;
@@ -102,7 +102,7 @@ impl<'i, 't, 'r> BlockingUart<'i, 't, 'r> {
         if let Some(tx) = tx {
             let tx = tx.into_uart_sout();
             blocking_uart_tx = Some(BlockingUartTx {
-                inner,
+                inner: unsafe { inner.clone() },
                 tx,
                 _marker: PhantomData,
             });
@@ -111,14 +111,14 @@ impl<'i, 't, 'r> BlockingUart<'i, 't, 'r> {
         if let Some(rx) = rx {
             let rx = rx.into_uart_sin();
             blocking_uart_rx = Some(BlockingUartRx {
-                inner,
+                inner: unsafe { inner.clone() },
                 rx,
                 _marker: PhantomData,
             })
         }
 
         BlockingUart {
-            inner,
+            inner: unsafe { inner.clone() },
             tx: blocking_uart_tx,
             rx: blocking_uart_rx,
             _marker: PhantomData,
@@ -128,9 +128,13 @@ impl<'i, 't, 'r> BlockingUart<'i, 't, 'r> {
     /// Configures the UART peripheral with the specified settings.
     /// Disables all UART interrupts first.
     /// Sets the baud rate, parity, stop bits, word length, and FIFO mode.
-    fn configure<const N: usize>(uart: &'static RegisterBlock, config: Config, clocks: Clocks) {
+    fn configure<const N: usize>(
+        uart: &mut MmioRegisterBlock<'static>,
+        config: Config,
+        clocks: Clocks,
+    ) {
         unsafe {
-            uart.ier_dlh.modify(|r| {
+            uart.modify_ier_dlh(|r| {
                 r.with_modem_status_interrupt_enable(false)
                     .with_transmit_empty_interrupt_enable(false)
                     .with_receive_data_available_interrupt_enable(false)
