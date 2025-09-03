@@ -6,6 +6,7 @@ use kendryte_hal::gpio::{GpioPort, MmioRegisterBlock};
 use kendryte_hal::instance::{Instance, Numbered};
 use kendryte_hal::iomux::ops::PadOps;
 use kendryte_hal::iomux::{FlexPad, IntoFlexPad};
+
 macro_rules! gpio {
     (
         $(
