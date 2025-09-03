@@ -41,8 +41,8 @@ impl<'i, 'p> Output<'i, 'p> {
                 inner.modify_swporta_dr(|r| r.with_pin_state(pin_num, pin_state.into()))
             },
             Port::B => unsafe {
-                inner.modify_swporta_ddr(|r| r.with_direction(pin_num, Direction::Output));
-                inner.modify_swporta_dr(|r| r.with_pin_state(pin_num, pin_state.into()))
+                inner.modify_swportb_ddr(|r| r.with_direction(pin_num, Direction::Output));
+                inner.modify_swportb_dr(|r| r.with_pin_state(pin_num, pin_state.into()))
             },
         }
 

@@ -27,6 +27,7 @@ impl<const N: usize> Pad<N> {
     fn new() -> Self {
         Pad(())
     }
+    #[inline]
     pub unsafe fn mmio_register_block() -> pad::MmioRegisterBlock<'static> {
         unsafe {
             let mut iomux = IOMUX::mmio_register_block();

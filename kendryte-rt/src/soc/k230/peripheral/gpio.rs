@@ -67,7 +67,7 @@ macro_rules! pad_gpio {
                 const PIN_NUM: usize = $pin_num;
 
                 #[inline]
-                fn into_gpio(mut self) -> FlexPad<'static> {
+                fn into_gpio(self) -> FlexPad<'static> {
                     let mut flex_pad = self.into_flex_pad();
                     flex_pad.set_bidirectional()
                         .set_function_select(u3::new($function_select));
@@ -80,7 +80,7 @@ macro_rules! pad_gpio {
                 const PIN_NUM: usize = $pin_num;
 
                 #[inline]
-                fn into_gpio(mut self) -> FlexPad<'p> {
+                fn into_gpio(self) -> FlexPad<'p> {
                     let mut flex_pad = self.into_flex_pad();
                     flex_pad.set_bidirectional()
                         .set_function_select(u3::new($function_select));
@@ -93,7 +93,7 @@ macro_rules! pad_gpio {
                 const PIN_NUM: usize = $pin_num;
 
                 #[inline]
-                fn into_gpio(mut self) -> FlexPad<'p> {
+                fn into_gpio(self) -> FlexPad<'p> {
                     let mut flex_pad = self.into_flex_pad();
                     flex_pad.set_bidirectional()
                         .set_function_select(u3::new($function_select));
