@@ -3,8 +3,9 @@ use crate::iomux::pad::{SlewRate, Strength};
 use arbitrary_int::{u1, u3};
 
 /// Pull-up/down configuration for a pad.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum Pull {
+    #[default]
     None,
     Up,
     Down,
@@ -37,7 +38,7 @@ pub trait PadOps {
 
     /// Get the current pull-up or pull-down configuration of the pad.
     /// Returns Some(Pull) if only one is enabled, or None if both are enabled (invalid state).
-    fn pull(&mut self) -> Option<Pull> {
+    fn pull(&self) -> Option<Pull> {
         let is_pull_up = self.inner().read_pad().pull_up_enable();
         let is_pull_down = self.inner().read_pad().pull_down_enable();
 

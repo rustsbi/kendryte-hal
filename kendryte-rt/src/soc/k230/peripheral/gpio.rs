@@ -1,8 +1,8 @@
 use crate::soc::k230::pads::Pad;
 use crate::soc::k230::{GPIO0, GPIO1};
 use arbitrary_int::u3;
-use kendryte_hal::gpio::MmioRegisterBlock;
-use kendryte_hal::gpio::pad::{IntoGpio, Port};
+use kendryte_hal::gpio::pad::IntoGpio;
+use kendryte_hal::gpio::{GpioPort, MmioRegisterBlock};
 use kendryte_hal::instance::{Instance, Numbered};
 use kendryte_hal::iomux::ops::PadOps;
 use kendryte_hal::iomux::{FlexPad, IntoFlexPad};
@@ -63,7 +63,7 @@ macro_rules! pad_gpio {
     ) => {
         $(
             impl IntoGpio<'static, $gpio_num> for Pad<$pad_num> {
-                const PORT: Port = $port;
+                const PORT: GpioPort = $port;
                 const PIN_NUM: usize = $pin_num;
 
                 #[inline]
@@ -76,7 +76,7 @@ macro_rules! pad_gpio {
             }
 
             impl<'p> IntoGpio<'p, $gpio_num> for &'p Pad<$pad_num> {
-                const PORT: Port = $port;
+                const PORT: GpioPort = $port;
                 const PIN_NUM: usize = $pin_num;
 
                 #[inline]
@@ -89,7 +89,7 @@ macro_rules! pad_gpio {
             }
 
             impl<'p> IntoGpio<'p, $gpio_num> for &'p mut Pad<$pad_num> {
-                const PORT: Port = $port;
+                const PORT: GpioPort = $port;
                 const PIN_NUM: usize = $pin_num;
 
                 #[inline]
@@ -106,70 +106,70 @@ macro_rules! pad_gpio {
 
 pad_gpio! {
     // GPIO Group 0
-    (0, 1, 0, Port::A, 0),
-    (1, 1, 0, Port::A, 1),
-    (2, 1, 0, Port::A, 2),
-    (3, 1, 0, Port::A, 3),
-    (4, 1, 0, Port::A, 4),
-    (5, 1, 0, Port::A, 5),
-    (6, 1, 0, Port::A, 6),
-    (7, 1, 0, Port::A, 7),
-    (8, 1, 0, Port::A, 8),
-    (9, 1, 0, Port::A, 9),
-    (10, 1, 0, Port::A, 10),
-    (11, 1, 0, Port::A, 11),
-    (12, 1, 0, Port::A, 12),
-    (13, 1, 0, Port::A, 13),
-    (14, 2, 0, Port::A, 14),
-    (15, 2, 0, Port::A, 15),
-    (16, 1, 0, Port::A, 16),
-    (17, 1, 0, Port::A, 17),
-    (18, 0, 0, Port::A, 18),
-    (19, 0, 0, Port::A, 19),
-    (20, 0, 0, Port::A, 20),
-    (21, 0, 0, Port::A, 21),
-    (22, 0, 0, Port::A, 22),
-    (23, 0, 0, Port::A, 23),
-    (24, 0, 0, Port::A, 24),
-    (25, 0, 0, Port::A, 25),
-    (26, 0, 0, Port::A, 26),
-    (27, 0, 0, Port::A, 27),
-    (28, 0, 0, Port::A, 28),
-    (29, 0, 0, Port::A, 29),
-    (30, 0, 0, Port::A, 30),
-    (31, 0, 0, Port::A, 31),
+    (0, 1, 0, GpioPort::A, 0),
+    (1, 1, 0, GpioPort::A, 1),
+    (2, 1, 0, GpioPort::A, 2),
+    (3, 1, 0, GpioPort::A, 3),
+    (4, 1, 0, GpioPort::A, 4),
+    (5, 1, 0, GpioPort::A, 5),
+    (6, 1, 0, GpioPort::A, 6),
+    (7, 1, 0, GpioPort::A, 7),
+    (8, 1, 0, GpioPort::A, 8),
+    (9, 1, 0, GpioPort::A, 9),
+    (10, 1, 0, GpioPort::A, 10),
+    (11, 1, 0, GpioPort::A, 11),
+    (12, 1, 0, GpioPort::A, 12),
+    (13, 1, 0, GpioPort::A, 13),
+    (14, 2, 0, GpioPort::A, 14),
+    (15, 2, 0, GpioPort::A, 15),
+    (16, 1, 0, GpioPort::A, 16),
+    (17, 1, 0, GpioPort::A, 17),
+    (18, 0, 0, GpioPort::A, 18),
+    (19, 0, 0, GpioPort::A, 19),
+    (20, 0, 0, GpioPort::A, 20),
+    (21, 0, 0, GpioPort::A, 21),
+    (22, 0, 0, GpioPort::A, 22),
+    (23, 0, 0, GpioPort::A, 23),
+    (24, 0, 0, GpioPort::A, 24),
+    (25, 0, 0, GpioPort::A, 25),
+    (26, 0, 0, GpioPort::A, 26),
+    (27, 0, 0, GpioPort::A, 27),
+    (28, 0, 0, GpioPort::A, 28),
+    (29, 0, 0, GpioPort::A, 29),
+    (30, 0, 0, GpioPort::A, 30),
+    (31, 0, 0, GpioPort::A, 31),
 
     // GPIO Group 1
-    (32, 1, 1, Port::A, 0),
-    (33, 1, 1, Port::A, 1),
-    (34, 1, 1, Port::A, 2),
-    (35, 1, 1, Port::A, 3),
-    (36, 1, 1, Port::A, 4),
-    (37, 1, 1, Port::A, 5),
-    (38, 1, 1, Port::A, 6),
-    (39, 1, 1, Port::A, 7),
-    (40, 1, 1, Port::A, 8),
-    (41, 1, 1, Port::A, 9),
-    (42, 1, 1, Port::A, 10),
-    (43, 1, 1, Port::A, 11),
-    (44, 1, 1, Port::A, 12),
-    (45, 1, 1, Port::A, 13),
-    (46, 2, 1, Port::A, 14),
-    (47, 2, 1, Port::A, 15),
-    (48, 1, 1, Port::A, 16),
-    (49, 1, 1, Port::A, 17),
-    (50, 0, 1, Port::A, 18),
-    (51, 0, 1, Port::A, 19),
-    (52, 0, 1, Port::A, 20),
-    (53, 0, 1, Port::A, 21),
-    (54, 0, 1, Port::A, 22),
-    (55, 0, 1, Port::A, 23),
-    (56, 0, 1, Port::A, 24),
-    (57, 0, 1, Port::A, 25),
-    (58, 0, 1, Port::A, 26),
-    (59, 0, 1, Port::A, 27),
-    (60, 0, 1, Port::A, 28),
-    (61, 0, 1, Port::A, 29),
-    (62, 0, 1, Port::A, 30),
-    (63, 0, 1, Port::A, 31),
+    (32, 1, 1, GpioPort::A, 0),
+    (33, 1, 1, GpioPort::A, 1),
+    (34, 1, 1, GpioPort::A, 2),
+    (35, 1, 1, GpioPort::A, 3),
+    (36, 1, 1, GpioPort::A, 4),
+    (37, 1, 1, GpioPort::A, 5),
+    (38, 1, 1, GpioPort::A, 6),
+    (39, 1, 1, GpioPort::A, 7),
+    (40, 1, 1, GpioPort::A, 8),
+    (41, 1, 1, GpioPort::A, 9),
+    (42, 1, 1, GpioPort::A, 10),
+    (43, 1, 1, GpioPort::A, 11),
+    (44, 1, 1, GpioPort::A, 12),
+    (45, 1, 1, GpioPort::A, 13),
+    (46, 2, 1, GpioPort::A, 14),
+    (47, 2, 1, GpioPort::A, 15),
+    (48, 1, 1, GpioPort::A, 16),
+    (49, 1, 1, GpioPort::A, 17),
+    (50, 0, 1, GpioPort::A, 18),
+    (51, 0, 1, GpioPort::A, 19),
+    (52, 0, 1, GpioPort::A, 20),
+    (53, 0, 1, GpioPort::A, 21),
+    (54, 0, 1, GpioPort::A, 22),
+    (55, 0, 1, GpioPort::A, 23),
+    (56, 0, 1, GpioPort::A, 24),
+    (57, 0, 1, GpioPort::A, 25),
+    (58, 0, 1, GpioPort::A, 26),
+    (59, 0, 1, GpioPort::A, 27),
+    (60, 0, 1, GpioPort::A, 28),
+    (61, 0, 1, GpioPort::A, 29),
+    (62, 0, 1, GpioPort::A, 30),
+    (63, 0, 1, GpioPort::A, 31),
 }

@@ -2,3 +2,5 @@
 /target
 .vscode
 .idea
+.claude/
+/*.sh
