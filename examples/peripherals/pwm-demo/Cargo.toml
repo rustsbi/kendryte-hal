@@ -11,6 +11,7 @@ panic-halt = "1.0.0"
 kendryte-hal = { path = "../../../kendryte-hal" }
 kendryte-rt = { path = "../../../kendryte-rt", features = ["k230"] }
 riscv = "0.13.0"
+embedded-io = "0.6.1"
 
 [[bin]]
 name = "pwm-demo"
