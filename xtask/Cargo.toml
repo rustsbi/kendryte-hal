@@ -6,6 +6,10 @@ license.workspace = true
 repository.workspace = true
 publish = false
 
+[[bin]]
+name = "xtask"
+path = "src/main.rs"
+
 [dependencies]
 aes = "0.8.4"
 aes-gcm = "0.10"
@@ -16,11 +20,14 @@ elliptic-curve = "0.13"
 hex = "0.4"
 num-bigint = "0.4.6"
 num-bigint-dig = "0.8"
+object = { version = "0.36", features = ["write"] }
 primeorder = "0.13"
 rsa = { version = "0.9", features = ["sha2"] }
 sha2 = "0.10"
 signature = "2.2.0"
-sm2 = { version = "0.13.3", features = ["arithmetic"], git = "https://github.com/ZhengLongBing/sm2.git" }
+sm2 = { version = "0.13.3", features = [
+    "arithmetic",
+], git = "https://github.com/ZhengLongBing/sm2.git" }
 sm3 = "0.4"
 sm4 = "0.5"
 thiserror = "2"

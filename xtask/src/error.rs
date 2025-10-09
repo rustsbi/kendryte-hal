@@ -32,6 +32,14 @@ pub enum XtaskError {
     /// Errors when parsing RSA key components.
     #[error("RSA parse error: {0}")]
     RsaParseError(String),
+
+    /// Errors when parsing ELF/OBJ files.
+    #[error("ELF parsing error: {0}")]
+    ElfParseError(String),
+
+    /// Errors when processing ELF sections larger than supported size.
+    #[error("Section size {0} is too large to fit in memory")]
+    SectionSizeOverflow(u64),
 }
 
 #[derive(Error, Debug)]
