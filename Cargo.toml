@@ -7,7 +7,8 @@ members = [
     "xtask",
     "examples/peripherals/uart-demo",
     "examples/peripherals/gpio-blinky-demo",
-    "examples/peripherals/gpio-button-demo"
+    "examples/peripherals/gpio-button-demo",
+    "examples/peripherals/multicore-demo",
 ]
 
 [workspace.package]
