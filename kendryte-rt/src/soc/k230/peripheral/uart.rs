@@ -4,7 +4,7 @@ use arbitrary_int::u3;
 use kendryte_hal::instance::{Instance, Numbered};
 use kendryte_hal::iomux::ops::PadOps;
 use kendryte_hal::iomux::{FlexPad, IntoFlexPad};
-use kendryte_hal::uart::RegisterBlock;
+use kendryte_hal::uart::MmioRegisterBlock;
 use kendryte_hal::uart::pad::{
     IntoUartCts, IntoUartDe, IntoUartRe, IntoUartRts, IntoUartSin, IntoUartSout,
 };
@@ -17,22 +17,22 @@ macro_rules! uart {
     ) => {
         $(
             impl Instance<'static> for $UARTx {
-                type R = RegisterBlock;
+                type R = MmioRegisterBlock<'static>;
 
                 #[inline]
-                fn inner(self) -> &'static Self::R {
-                    unsafe { &*<$UARTx>::ptr() }
+                fn inner(self) -> Self::R {
+                    unsafe { <$UARTx>::mmio_register_block() }
                 }
             }
 
             impl Numbered<'static, $n> for $UARTx {}
 
             impl<'i> Instance<'i> for &'i mut $UARTx {
-                type R = RegisterBlock;
+                type R = MmioRegisterBlock<'static>;
 
                 #[inline]
-                fn inner(self) -> &'static Self::R {
-                    unsafe { &*<$UARTx>::ptr() }
+                fn inner(self) -> Self::R {
+                    unsafe { <$UARTx>::mmio_register_block() }
                 }
             }
 
@@ -58,16 +58,18 @@ macro_rules! pad_uart_sout {
       $(
         impl IntoUartSout<'static,$uart_num> for Pad<$pad_num> {
             fn into_uart_sout(self) -> FlexPad<'static> {
-                self.set_output()
+                let mut flex_pad = self.into_flex_pad();
+                flex_pad.set_output()
                     .set_function_select(u3::new($function_select));
-                self.into_flex_pad()
+                flex_pad
             }
         }
         impl<'p> IntoUartSout<'p,$uart_num> for & 'p mut Pad<$pad_num> {
             fn into_uart_sout(self) -> FlexPad<'p> {
-                self.set_output()
+                let mut flex_pad = self.into_flex_pad();
+                flex_pad.set_output()
                     .set_function_select(u3::new($function_select));
-                self.into_flex_pad()
+                flex_pad
             }
         }
       )+
@@ -102,17 +104,19 @@ macro_rules! pad_uart_sin {
         $(
             impl IntoUartSin<'static, $uart_num> for Pad<$pad_num> {
                 fn into_uart_sin(self) -> FlexPad<'static> {
-                    self.set_output()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_output()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
 
             impl<'p> IntoUartSin<'p, $uart_num> for &'p mut Pad<$pad_num> {
                 fn into_uart_sin(self) -> FlexPad<'p> {
-                    self.set_output()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_output()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
         )+
@@ -147,17 +151,19 @@ macro_rules! pad_uart_rts {
         $(
             impl IntoUartRts<'static, $uart_num> for Pad<$pad_num> {
                 fn into_uart_rts(self) -> FlexPad<'static> {
-                    self.set_output()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_output()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
 
             impl<'p> IntoUartRts<'p, $uart_num> for &'p mut Pad<$pad_num> {
                 fn into_uart_rts(self) -> FlexPad<'p> {
-                    self.set_output()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_output()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
         )+
@@ -183,17 +189,19 @@ macro_rules! pad_uart_cts {
         $(
             impl IntoUartCts<'static, $uart_num> for Pad<$pad_num> {
                 fn into_uart_cts(self) -> FlexPad<'static> {
-                    self.set_output()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_output()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
 
             impl<'p> IntoUartCts<'p, $uart_num> for &'p mut Pad<$pad_num> {
                 fn into_uart_cts(self) -> FlexPad<'p> {
-                    self.set_output()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_output()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
         )+
@@ -219,17 +227,19 @@ macro_rules! pad_uart_de {
         $(
             impl IntoUartDe<'static, $uart_num> for Pad<$pad_num> {
                 fn into_uart_de(self) -> FlexPad<'static> {
-                    self.set_output()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_output()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
 
             impl<'p> IntoUartDe<'p, $uart_num> for &'p mut Pad<$pad_num> {
                 fn into_uart_de(self) -> FlexPad<'p> {
-                    self.set_output()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_output()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
         )+
@@ -249,17 +259,19 @@ macro_rules! pad_uart_re {
         $(
             impl IntoUartRe<'static, $uart_num> for Pad<$pad_num> {
                 fn into_uart_re(self) -> FlexPad<'static> {
-                    self.set_output()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_output()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
 
             impl<'p> IntoUartRe<'p, $uart_num> for &'p mut Pad<$pad_num> {
                 fn into_uart_re(self) -> FlexPad<'p> {
-                    self.set_output()
+                    let mut flex_pad = self.into_flex_pad();
+                    flex_pad.set_output()
                         .set_function_select(u3::new($function_select));
-                    self.into_flex_pad()
+                    flex_pad
                 }
             }
         )+

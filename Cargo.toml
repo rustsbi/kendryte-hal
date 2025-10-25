@@ -10,6 +10,7 @@ members = [
     "examples/peripherals/gpio-button-demo",
     "examples/peripherals/pwm-demo",
     "examples/peripherals/spi-demo",
+    "examples/peripherals/multicore-demo",
 ]
 
 [workspace.package]

@@ -1,7 +1,6 @@
 use arbitrary_int::{u1, u2, u3, u4, u5, u7, u9, u14, u15, u17, u20, u24, u25, u26, u29, u30, u31};
 use bitbybit::{bitenum, bitfield};
-use volatile_register::{RO, RW};
-
+use derive_mmio::Mmio;
 // These definitions are from the K230 Technical Reference Manual
 
 /// Working mode for the SPI peripheral.
@@ -1218,6 +1217,7 @@ pub struct DoneClearReg {
 ///
 /// Represents the memory-mapped registers for the SPI peripheral.
 /// Each field corresponds to a specific hardware register as described in the K230 manual.
+#[derive(Mmio)]
 #[repr(C)]
 pub struct RegisterBlock {
     /// Control Register 0.

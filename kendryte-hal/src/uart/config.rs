@@ -1,4 +1,4 @@
-use crate::uart::{ParityType, RegisterBlock, StopBits, WordLength};
+use crate::uart::{MmioRegisterBlock, ParityType, RegisterBlock, StopBits, WordLength};
 use embedded_time::rate::Baud;
 
 /// Represents different parity checking modes for UART communication.
@@ -82,40 +82,34 @@ impl Config {
 }
 
 /// Gets the current divisor value from UART registers.
-pub(crate) fn divisor(uart: &RegisterBlock) -> u16 {
+pub(crate) fn divisor(uart: &mut MmioRegisterBlock) -> u16 {
     unsafe {
-        uart.lcr
-            .modify(|r| r.with_divisor_latch_access_enable(true));
+        uart.modify_lcr(|r| r.with_divisor_latch_access_enable(true));
     }
-    let dll = uart.rbr_thr_dll.read().divisor_latch_lsb();
-    let dlh = uart.ier_dlh.read().divisor_latch_hsb();
+    let dll = uart.read_rbr_thr_dll().divisor_latch_lsb();
+    let dlh = uart.read_ier_dlh().divisor_latch_hsb();
     unsafe {
-        uart.lcr
-            .modify(|r| r.with_divisor_latch_access_enable(false));
+        uart.modify_lcr(|r| r.with_divisor_latch_access_enable(false));
     }
     u16::from_le_bytes([dll, dlh])
 }
 
 /// Sets the divisor value in UART registers.
-pub(crate) fn set_divisor(uart: &RegisterBlock, divisor: u16) {
+pub(crate) fn set_divisor(uart: &mut MmioRegisterBlock, divisor: u16) {
     unsafe {
-        uart.lcr
-            .modify(|r| r.with_divisor_latch_access_enable(true));
+        uart.modify_lcr(|r| r.with_divisor_latch_access_enable(true));
     }
     let [divisor_lsb, divisor_hsb] = divisor.to_le_bytes();
     unsafe {
-        uart.rbr_thr_dll
-            .modify(|r| r.with_divisor_latch_lsb(divisor_lsb));
-        uart.ier_dlh
-            .modify(|r| r.with_divisor_latch_hsb(divisor_hsb));
-        uart.lcr
-            .modify(|r| r.with_divisor_latch_access_enable(false));
+        uart.modify_rbr_thr_dll(|r| r.with_divisor_latch_lsb(divisor_lsb));
+        uart.modify_ier_dlh(|r| r.with_divisor_latch_hsb(divisor_hsb));
+        uart.modify_lcr(|r| r.with_divisor_latch_access_enable(false));
     }
 }
 
 /// Gets the current parity mode from UART registers.
-pub(crate) fn parity_mode(uart: &RegisterBlock) -> ParityMode {
-    let lcr = uart.lcr.read();
+pub(crate) fn parity_mode(uart: &mut MmioRegisterBlock) -> ParityMode {
+    let lcr = uart.read_lcr();
     let flags = (
         lcr.parity_enable(),
         lcr.parity_type(),
@@ -131,8 +125,8 @@ pub(crate) fn parity_mode(uart: &RegisterBlock) -> ParityMode {
 }
 
 /// Sets the parity mode in UART registers.
-pub(crate) fn set_parity_mode(uart: &RegisterBlock, parity: ParityMode) {
-    let lcr = uart.lcr.read();
+pub(crate) fn set_parity_mode(uart: &mut MmioRegisterBlock, parity: ParityMode) {
+    let lcr = uart.read_lcr();
     let lcr = match parity {
         ParityMode::None => lcr.with_parity_enable(false),
         ParityMode::Odd => lcr
@@ -153,41 +147,41 @@ pub(crate) fn set_parity_mode(uart: &RegisterBlock, parity: ParityMode) {
             .with_parity_type(ParityType::Even),
     };
     unsafe {
-        uart.lcr.write(lcr);
+        uart.write_lcr(lcr);
     }
 }
 
 /// Gets the current stop bits setting from UART registers.
-pub(crate) fn stop_bits(uart: &RegisterBlock) -> StopBits {
-    uart.lcr.read().stop_bits()
+pub(crate) fn stop_bits(uart: &mut MmioRegisterBlock) -> StopBits {
+    uart.read_lcr().stop_bits()
 }
 
 /// Sets the stop bits in UART registers.
-pub(crate) fn set_stop_bits(uart: &RegisterBlock, stop_bits: StopBits) {
+pub(crate) fn set_stop_bits(uart: &mut MmioRegisterBlock, stop_bits: StopBits) {
     unsafe {
-        uart.lcr.modify(|r| r.with_stop_bits(stop_bits));
+        uart.modify_lcr(|r| r.with_stop_bits(stop_bits));
     }
 }
 
 /// Gets the current word length from UART registers.
-pub(crate) fn word_length(uart: &RegisterBlock) -> WordLength {
-    uart.lcr.read().word_length()
+pub(crate) fn word_length(uart: &mut MmioRegisterBlock) -> WordLength {
+    uart.read_lcr().word_length()
 }
 
 /// Sets the word length in UART registers.
-pub(crate) fn set_word_length(uart: &RegisterBlock, word_length: WordLength) {
+pub(crate) fn set_word_length(uart: &mut MmioRegisterBlock, word_length: WordLength) {
     unsafe {
-        uart.lcr.modify(|r| r.with_word_length(word_length));
+        uart.modify_lcr(|r| r.with_word_length(word_length));
     }
 }
 
-pub(crate) fn enable_fifo(uart: &RegisterBlock) {
+pub(crate) fn enable_fifo(uart: &mut MmioRegisterBlock) {
     unsafe {
-        uart.iir_fcr.modify(|r| r.with_fifo_enable(true));
+        uart.modify_iir_fcr(|r| r.with_fifo_enable(true));
     }
 }
-pub(crate) fn disable_fifo(uart: &RegisterBlock) {
+pub(crate) fn disable_fifo(uart: &mut MmioRegisterBlock) {
     unsafe {
-        uart.iir_fcr.modify(|r| r.with_fifo_enable(false));
+        uart.modify_iir_fcr(|r| r.with_fifo_enable(false));
     }
 }

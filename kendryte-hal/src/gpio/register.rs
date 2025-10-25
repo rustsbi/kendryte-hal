@@ -1,88 +1,98 @@
 use arbitrary_int::{u2, u5};
 use bitbybit::{bitenum, bitfield};
-use volatile_register::{RO, RW, WO};
+use derive_mmio::Mmio;
 /// GPIO Register Block.
 ///
 /// This structure represents the memory-mapped registers of a GPIO peripheral.
 /// Each field corresponds to a specific register or group of registers.
+#[derive(Mmio)]
 #[repr(C)]
 pub struct RegisterBlock {
     /// Port A Data Register.
     /// Used to read or write data from/to Port A.
-    pub swporta_dr: RW<Dr>,
+    pub swporta_dr: Dr,
     /// Port A Data Direction Register.
     /// Configures Port A pins as input or output.
-    pub swporta_ddr: RW<Ddr>,
+    pub swporta_ddr: Ddr,
     /// Port A Control Register.
     /// Controls the data source for Port A.
-    pub swporta_ctl: RW<Ctl>,
+    pub swporta_ctl: Ctl,
     /// Port B Data Register.
     /// Used to read or write data from/to Port B.
-    pub swportb_dr: RW<Dr>,
+    pub swportb_dr: Dr,
     /// Port B Data Direction Register.
     /// Configures Port B pins as input or output.
-    pub swportb_ddr: RW<Ddr>,
+    pub swportb_ddr: Ddr,
     /// Port B Control Register.
     /// Controls the data source for Port B.
-    pub swportb_ctl: RW<Ctl>,
+    pub swportb_ctl: Ctl,
     _reserved0: [u8; 0x18],
     /// Interrupt Enable Register.
     /// Enables interrupts for Port A.
     /// Only available if Port A supports interrupts.
-    pub inten: RW<IntEn>,
+    pub inten: IntEn,
     /// Interrupt Mask Register.
     /// Masks specific interrupt sources.
     /// Only available if Port A supports interrupts.
-    pub intmask: RW<IntMask>,
+    pub intmask: IntMask,
     /// Interrupt Level Register.
     /// Configures interrupt trigger levels.
     /// Only available if Port A supports interrupts.
-    pub inttype_level: RW<IntTypeLevel>,
+    pub inttype_level: IntTypeLevel,
     /// Interrupt Polarity Register.
     /// Configures interrupt trigger polarity.
     /// Only available if Port A supports interrupts.
-    pub int_polarity: RW<IntPolarity>,
+    pub int_polarity: IntPolarity,
     /// Interrupt Status Register.
     /// Shows current interrupt status.
     /// Only available if Port A supports interrupts.
-    pub intstatus: RO<IntStatus>,
+    #[mmio(PureRead)]
+    pub intstatus: IntStatus,
     /// Raw Interrupt Status Register.
     /// Shows unmasked interrupt status.
     /// Only available if Port A supports interrupts.
-    pub raw_intstatus: RO<RawIntStatus>,
+    #[mmio(PureRead)]
+    pub raw_intstatus: RawIntStatus,
     /// Debounce Enable Register.
     /// Enables debounce functionality.
     /// Available with interrupt and debounce support.
-    pub debounce: RW<Debounce>,
+    pub debounce: Debounce,
     /// Port A Clear Interrupt Register.
     /// Clears pending interrupts.
     /// Available with interrupt and debounce support.
-    pub porta_eoi: WO<Eoi>,
+    #[mmio(Write)]
+    pub porta_eoi: Eoi,
     /// External Port A Register.
     /// Reads external Port A pin values.
-    pub ext_porta: RO<Ext>,
+    #[mmio(PureRead)]
+    pub ext_porta: Ext,
     /// External Port B Register.
     /// Reads external Port B pin values.
-    pub ext_portb: RO<Ext>,
+    #[mmio(PureRead)]
+    pub ext_portb: Ext,
     _reserved1: [u8; 0x08],
     /// Synchronization Level Register.
     /// Configures input synchronization.
-    pub ls_sync: RW<LsSync>,
+    pub ls_sync: LsSync,
     /// GPIO ID Code Register.
     /// Contains device identification code.
-    pub id_code: RO<IdCode>,
+    #[mmio(PureRead)]
+    pub id_code: IdCode,
     /// Interrupt Both Edge Type Register.
     /// Configures edge detection for interrupts.
-    pub int_both_edge: RW<IntBothEdge>,
+    pub int_both_edge: IntBothEdge,
     /// GPIO Version ID Register.
     /// Contains version information.
-    pub ver_id_code: RO<VerIdCode>,
+    #[mmio(PureRead)]
+    pub ver_id_code: VerIdCode,
     /// GPIO Configuration Register 2.
     /// Additional configuration parameters when GPIO_ADD_ENCODED_PARAMS is true.
-    pub config_reg2: RO<ConfigReg2>,
+    #[mmio(PureRead)]
+    pub config_reg2: ConfigReg2,
     /// GPIO Configuration Register 1.
     /// Additional configuration parameters when GPIO_ADD_ENCODED_PARAMS is true.
-    pub config_reg1: RO<ConfigReg1>,
+    #[mmio(PureRead)]
+    pub config_reg1: ConfigReg1,
 }
 
 /// Data Register.
