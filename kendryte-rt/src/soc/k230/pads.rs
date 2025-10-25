@@ -1,7 +1,10 @@
 use crate::soc::k230::IOMUX;
+use arbitrary_int::u3;
 use kendryte_hal::iomux;
 use kendryte_hal::iomux::ops::PadOps;
-use kendryte_hal::iomux::{FlexPad, IntoFlexPad, pad};
+use kendryte_hal::iomux::pad::RegisterBlock;
+use kendryte_hal::iomux::{FlexPad, IntoFlexPad};
+use kendryte_hal::spi::pad::{IntoSpiClk, IntoSpiCs, IntoSpiMiso, IntoSpiMosi};
 
 pub struct Pad<const N: usize>(());
 
@@ -173,3 +176,105 @@ impl Pads {
         }
     }
 }
+
+// SPI pad mappings for K230
+// NOTE: The function_select indices below are placeholders and must be verified against the K230 TRM.
+// They are provided so that code compiles and the API shape matches other peripherals.
+
+macro_rules! pad_spi_clk {
+    (
+        $(
+           ($pad_num:expr, $function_select:expr, $spi_num:expr)
+        ),+ $(,)?
+    ) => {
+        $(
+            impl IntoSpiClk<'static, $spi_num> for Pad<$pad_num> {
+                fn into_spi_clk(self) -> FlexPad<'static> {
+                    self.set_output().set_function_select(u3::new($function_select));
+                    self.into_flex_pad()
+                }
+            }
+            impl<'p> IntoSpiClk<'p, $spi_num> for &'p mut Pad<$pad_num> {
+                fn into_spi_clk(self) -> FlexPad<'p> {
+                    self.set_output().set_function_select(u3::new($function_select));
+                    self.into_flex_pad()
+                }
+            }
+        )+
+    };
+}
+
+macro_rules! pad_spi_mosi {
+    (
+        $(
+           ($pad_num:expr, $function_select:expr, $spi_num:expr)
+        ),+ $(,)?
+    ) => {
+        $(
+            impl IntoSpiMosi<'static, $spi_num> for Pad<$pad_num> {
+                fn into_spi_mosi(self) -> FlexPad<'static> {
+                    self.set_output().set_function_select(u3::new($function_select));
+                    self.into_flex_pad()
+                }
+            }
+            impl<'p> IntoSpiMosi<'p, $spi_num> for &'p mut Pad<$pad_num> {
+                fn into_spi_mosi(self) -> FlexPad<'p> {
+                    self.set_output().set_function_select(u3::new($function_select));
+                    self.into_flex_pad()
+                }
+            }
+        )+
+    };
+}
+
+macro_rules! pad_spi_miso {
+    (
+        $(
+           ($pad_num:expr, $function_select:expr, $spi_num:expr)
+        ),+ $(,)?
+    ) => {
+        $(
+            impl IntoSpiMiso<'static, $spi_num> for Pad<$pad_num> {
+                fn into_spi_miso(self) -> FlexPad<'static> {
+                    self.set_output().set_function_select(u3::new($function_select));
+                    self.into_flex_pad()
+                }
+            }
+            impl<'p> IntoSpiMiso<'p, $spi_num> for &'p mut Pad<$pad_num> {
+                fn into_spi_miso(self) -> FlexPad<'p> {
+                    self.set_output().set_function_select(u3::new($function_select));
+                    self.into_flex_pad()
+                }
+            }
+        )+
+    };
+}
+
+macro_rules! pad_spi_cs {
+    (
+        $(
+           ($pad_num:expr, $function_select:expr, $spi_num:expr)
+        ),+ $(,)?
+    ) => {
+        $(
+            impl IntoSpiCs<'static, $spi_num> for Pad<$pad_num> {
+                fn into_spi_cs(self) -> FlexPad<'static> {
+                    self.set_output().set_function_select(u3::new($function_select));
+                    self.into_flex_pad()
+                }
+            }
+            impl<'p> IntoSpiCs<'p, $spi_num> for &'p mut Pad<$pad_num> {
+                fn into_spi_cs(self) -> FlexPad<'p> {
+                    self.set_output().set_function_select(u3::new($function_select));
+                    self.into_flex_pad()
+                }
+            }
+        )+
+    };
+}
+
+// Placeholder mappings for SPI0
+pad_spi_clk! { (40, 2, 0) }
+pad_spi_mosi! { (41, 2, 0) }
+pad_spi_miso! { (39, 2, 0) }
+pad_spi_cs! { (38, 2, 0) }

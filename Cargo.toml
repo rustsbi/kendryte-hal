@@ -8,6 +8,8 @@ members = [
     "examples/peripherals/uart-demo",
     "examples/peripherals/gpio-blinky-demo",
     "examples/peripherals/gpio-button-demo",
+    "examples/peripherals/pwm-demo",
+    "examples/peripherals/spi-demo",
     "examples/peripherals/multicore-demo",
 ]
 

@@ -1222,119 +1222,119 @@ pub struct DoneClearReg {
 pub struct RegisterBlock {
     /// Control Register 0.
     /// Contains basic SPI configuration settings.
-    ctrlr0: ControlReg0,
+    pub ctrlr0: RW<ControlReg0>,
     /// Control Register 1.
     /// Contains additional SPI configuration settings.
-    ctrlr1: ControlReg1,
+    pub ctrlr1: RW<ControlReg1>,
     /// SSI Enable Register.
     /// Controls the enabling/disabling of the SSI interface.
-    ssienr: SsiEnableReg,
+    pub ssienr: RW<SsiEnableReg>,
     /// Microwire Control Register.
     /// Controls the Microwire interface operations.
-    mwcr: MicrowireControlReg,
+    pub mwcr: RW<MicrowireControlReg>,
     /// Slave Enable Register.
     /// Controls which slave devices are selected.
-    ser: SlaveEnableReg,
+    pub ser: RW<SlaveEnableReg>,
     /// Baud Rate Select Register.
     /// Sets the SPI communication speed.
-    baudr: BaudRateSelectReg,
+    pub baudr: RW<BaudRateSelectReg>,
     /// Transmit FIFO Threshold Level Register.
     /// Sets the threshold for TX FIFO interrupts.
-    txftlr: TransmitFifoThresholdLevelReg,
+    pub txftlr: RW<TransmitFifoThresholdLevelReg>,
     /// Receive FIFO Threshold Level Register.
     /// Sets the threshold for RX FIFO interrupts.
-    rxftlr: ReceiveFifoThresholdLevelReg,
+    pub rxftlr: RW<ReceiveFifoThresholdLevelReg>,
     /// Transmit FIFO Level Register.
     /// Indicates current TX FIFO fill level.
-    txflr: TransmitFifoLevelReg,
+    pub txflr: RW<TransmitFifoLevelReg>,
     /// Receive FIFO Level Register.
     /// Indicates current RX FIFO fill level.
-    rxflr: ReceiveFifoLevelReg,
+    pub rxflr: RW<ReceiveFifoLevelReg>,
     /// Status Register.
     /// Contains current SPI status information.
-    sr: StatusReg,
+    pub sr: RW<StatusReg>,
     /// Interrupt Mask Register.
     /// Controls which interrupts are enabled.
-    imr: InterruptMaskReg,
+    pub imr: RW<InterruptMaskReg>,
     /// Interrupt Status Register.
     /// Shows current interrupt status.
-    isr: InterruptStatusReg,
+    pub isr: RW<InterruptStatusReg>,
     /// Raw Interrupt Status Register.
     /// Shows unmasked interrupt status.
-    risr: RawInterruptStatusReg,
+    pub risr: RW<RawInterruptStatusReg>,
     /// Transmit FIFO Error Interrupt Clear Register.
     /// Clears TX FIFO error interrupts.
-    txeicr: TransmitFifoErrorInterruptClearReg,
+    pub txeicr: RW<TransmitFifoErrorInterruptClearReg>,
     /// Receive FIFO Overflow Interrupt Clear Register.
     /// Clears RX FIFO overflow interrupts.
-    rxoicr: ReceiveFifoOverflowInterruptClearReg,
+    pub rxoicr: RW<ReceiveFifoOverflowInterruptClearReg>,
     /// Receive FIFO Underflow Interrupt Clear Register.
     /// Clears RX FIFO underflow interrupts.
-    rxuicr: ReceiveFifoUnderflowInterruptClearReg,
+    pub rxuicr: RW<ReceiveFifoUnderflowInterruptClearReg>,
     /// Multi-Master Interrupt Clear Register.
     /// Clears multi-master conflict interrupts.
-    msticr: MultiMasterInterruptClearReg,
+    pub msticr: RW<MultiMasterInterruptClearReg>,
     /// Interrupt Clear Register.
     /// Clears all interrupts.
-    icr: InterruptClearReg,
+    pub icr: RW<InterruptClearReg>,
     /// DMA Control Register.
     /// Controls DMA operations.
-    dmacr: DmaControlReg,
+    pub dmacr: RW<DmaControlReg>,
     /// DMA Transmit Data Level Register.
     /// Sets DMA TX data threshold.
     /// Destination Burst Length Register.
     /// Sets AXI destination burst length.
-    dmatdlr_axiawlen: DmaTransmitDataLevelReg,
+    pub dmatdlr_axiawlen: RW<DmaTransmitDataLevelReg>,
     /// DMA Receive Data Level.
     /// Shows current DMA RX data level.
     /// Source Burst Length.
     /// Sets AXI source burst length.
-    dmardlr_axiarlen: DmaReceiveDataLevelReg,
+    pub dmardlr_axiarlen: RW<DmaReceiveDataLevelReg>,
     /// Identification Register.
     /// Contains peripheral identification information.
-    idr: IdentificationReg,
+    pub idr: RW<IdentificationReg>,
     /// Component version Register.
     /// Shows hardware component version.
-    ssi_version_id: ComponentVersionReg,
+    pub ssi_version_id: RW<ComponentVersionReg>,
     /// Data Register.
     /// Array of data registers for SPI communication.
     // Control Register.
     /// Contains SSI control settings.
-    dr_ssi_ctrl: [DataReg; 36],
+    pub dr_ssi_ctrl: [RW<DataReg>; 36],
     /// RX Sample Delay Register.
     /// Controls RX sampling delay.
-    rx_sample_delay: RxSampleDelayReg,
+    pub rx_sample_delay: RW<RxSampleDelayReg>,
     /// SPI Control 0 Register.
     /// Contains primary SPI control settings.
-    spi_ctrlr0: SpiControlReg0,
+    pub spi_ctrlr0: RW<SpiControlReg0>,
     /// Transmit Drive Edge Register.
     /// Controls TX signal edge timing.
-    ddr_drive_edge: DdrDriveEdgeReg,
-    _reversed0: [u8; 0x1C],
+    pub ddr_drive_edge: RW<DdrDriveEdgeReg>,
+    pub _reversed0: [u8; 0x1C],
     /// SPI Control 1 register.
     /// Contains secondary SPI control settings.
-    spi_ctrlr1: SpiControlReg1,
+    pub spi_ctrlr1: RW<SpiControlReg1>,
     /// SPI Transmit Error Interrupt Clear Register.
     /// Clears SPI TX error interrupts.
-    spitecr: SpiTransmitErrorClearReg,
+    pub spitecr: RW<SpiTransmitErrorClearReg>,
     /// SPI Device Register.
     /// Controls SPI device settings.
-    spidr: SpiDeviceReg,
+    pub spidr: RW<SpiDeviceReg>,
     /// SPI Device Address Register.
     /// Sets SPI device addressing.
-    spiar: SpiAddressReg,
+    pub spiar: RW<SpiAddressReg>,
     /// AXI Address Register 0.
     /// Contains primary AXI address settings.
-    axiar0: AxiAddressReg0,
+    pub axiar0: RW<AxiAddressReg0>,
     /// AXI Address Register 1.
     /// Contains secondary AXI address settings.
-    axiar1: AxiAddressReg1,
+    pub axiar1: RW<AxiAddressReg1>,
     /// AXI Master Error Interrupt Clear Register.
     /// Clears AXI master error interrupts.
-    axiecr: AxiErrorClearReg,
+    pub axiecr: RW<AxiErrorClearReg>,
     /// Transfer Done Clear Interrupt Clear Register.
     /// Clears transfer completion interrupts.
-    donecr: DoneClearReg,
+    pub donecr: RW<DoneClearReg>,
 }
 #[cfg(test)]
 mod tests {
