@@ -10,8 +10,8 @@ publish = false
 panic-halt = "1.0.0"
 kendryte-hal = { path = "../../../kendryte-hal" }
 kendryte-rt = { path = "../../../kendryte-rt", features = ["k230"] }
-riscv = "0.13.0"
-embedded-io = { version = "0.6", default-features = false }
+riscv = "0.16.1"
+embedded-io = { version = "0.7", default-features = false }
 
 
 [[bin]]

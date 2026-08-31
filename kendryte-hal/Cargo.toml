@@ -6,10 +6,10 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-arbitrary-int = "1.3"
-bitbybit = "1.3"
-embedded-io = "0.6.1"
+arbitrary-int = "2.2"
+bitbybit = "2.0"
+embedded-io = "0.7.1"
 embedded-hal-nb ="1.0.0"
 embedded-hal = "1.0.0"
 embedded-time = "0.12.1"
-derive-mmio = "0.6"
+derive-mmio = "0.8"

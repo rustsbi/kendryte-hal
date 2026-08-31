@@ -10,7 +10,7 @@ publish = false
 panic-halt = "1.0.0"
 kendryte-hal = { path = "../../../kendryte-hal" }
 kendryte-rt = { path = "../../../kendryte-rt", features = ["k230"] }
-riscv = "0.13.0"
+riscv = "0.16.1"
 
 [[bin]]
 name = "gpio-button-demo"

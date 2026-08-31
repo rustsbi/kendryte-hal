@@ -11,28 +11,32 @@ name = "xtask"
 path = "src/main.rs"
 
 [dependencies]
-aes = "0.8.4"
-aes-gcm = "0.10"
-cbc = { version = "0.1", features = ["block-padding", "alloc"] }
-cipher = "0.4"
-clap = { version = "4.5", features = ["derive"] }
+aes = "0.9.3"
+aes-gcm = "0.11"
+cbc = { version = "0.2", features = ["block-padding", "alloc"] }
+cipher = "0.5"
+clap = { version = "4.6", features = ["derive"] }
+# Keep the 0.13 generation required by sm2 0.13.
 elliptic-curve = "0.13"
 hex = "0.4"
-num-bigint = "0.4.6"
+num-bigint = "0.5.1"
+# Keep the 0.8 generation required by rsa 0.9.
 num-bigint-dig = "0.8"
-object = { version = "0.36", features = ["write"] }
+object = { version = "0.40", features = ["write"] }
+# Keep the 0.13 generation required by sm2 0.13.
 primeorder = "0.13"
 rsa = { version = "0.9", features = ["sha2"] }
+# Keep these generations aligned with rsa 0.9 and sm2 0.13.
 sha2 = "0.10"
 signature = "2.2.0"
 sm2 = { version = "0.13.3", features = [
     "arithmetic",
 ], git = "https://github.com/ZhengLongBing/sm2.git" }
-sm3 = "0.4"
-sm4 = "0.5"
+sm3 = "0.5"
+sm4 = "0.6"
 thiserror = "2"
 
 [dev-dependencies]
-assert_cmd = "2.0"
-predicates = "3.0"
-tempfile = "3.3"
+assert_cmd = "2.2"
+predicates = "3.1"
+tempfile = "3.27"

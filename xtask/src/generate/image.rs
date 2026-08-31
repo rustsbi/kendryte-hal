@@ -5,19 +5,17 @@ use crate::generate::config::{
     ADD_AUTH_DATA, D, E, ID, ID_LEN, INITIAL_AES_IV, INITIAL_AES_KEY, K, MAGIC, N, PRIVATE_KEY,
     PUBLIC_KEY_X, PUBLIC_KEY_Y, SM4_IV, SM4_KEY, VERSION,
 };
-use aes_gcm::{AeadInPlace, Aes256Gcm, Key, KeyInit, Nonce, Tag};
-use cbc::cipher::KeyIvInit;
-use cipher::BlockEncryptMut;
-use cipher::block_padding::Pkcs7;
+use aes_gcm::{Aes256Gcm, Key, KeyInit, Nonce, Tag, aead::AeadInOut};
+use cipher::{BlockModeEncrypt, KeyIvInit, block_padding::Pkcs7};
 use num_bigint_dig::BigUint;
 use primeorder::PrimeCurveParams;
 use rsa::RsaPrivateKey;
 use rsa::pkcs1v15::SigningKey;
 use rsa::signature::{SignatureEncoding, Signer};
-use sha2::{Digest, Sha256};
+use sha2::{Digest as Sha2Digest, Sha256};
 use sm2::elliptic_curve::ScalarPrimitive;
 use sm2::{FieldBytes, Scalar, SecretKey, Sm2};
-use sm3::Sm3;
+use sm3::{Digest as Sm3Digest, Sm3};
 use std::str::FromStr;
 
 /// Encryption types supported for firmware.
@@ -166,14 +164,18 @@ fn handle_aes_encryption(image: &mut Vec<u8>, firmware: &[u8]) -> XtaskResult<()
 /// Returns the ciphertext and authentication tag.
 /// The tag is appended to the ciphertext.
 fn encrypt_aes(firmware_with_version: &[u8]) -> XtaskResult<(Vec<u8>, Tag)> {
-    let key = Key::<Aes256Gcm>::from_slice(INITIAL_AES_KEY);
-    let nonce = Nonce::from_slice(INITIAL_AES_IV);
+    let key: &Key<Aes256Gcm> = INITIAL_AES_KEY
+        .try_into()
+        .map_err(|_| XtaskError::AesError("invalid AES-256 key length".to_string()))?;
+    let nonce: &Nonce<_> = INITIAL_AES_IV
+        .try_into()
+        .map_err(|_| XtaskError::AesError("invalid AES-GCM nonce length".to_string()))?;
     let cipher = Aes256Gcm::new(key);
 
     let mut ciphertext = firmware_with_version.to_vec();
     // Perform AES-GCM encryption and get authentication tag.
     let tag = cipher
-        .encrypt_in_place_detached(nonce, ADD_AUTH_DATA, &mut ciphertext)
+        .encrypt_inout_detached(nonce, ADD_AUTH_DATA, ciphertext.as_mut_slice().into())
         .map_err(|e| XtaskError::AesError(e.to_string()))?;
     ciphertext.extend(&tag);
     Ok((ciphertext, tag))
@@ -217,8 +219,10 @@ fn prepare_rsa_signature(tag: Tag) -> XtaskResult<(Vec<u8>, Vec<u8>, Vec<u8>)> {
 /// Returns the ciphertext as a vector of bytes.
 fn encrypt_sm4(firmware_with_version: &[u8]) -> Vec<u8> {
     type Sm4CbcEnc = cbc::Encryptor<sm4::Sm4>;
-    let cipher = Sm4CbcEnc::new(SM4_KEY.into(), SM4_IV.into());
-    cipher.encrypt_padded_vec_mut::<Pkcs7>(&firmware_with_version)
+    let key: &[u8; 16] = SM4_KEY.try_into().expect("SM4 key must be 16 bytes");
+    let iv: &[u8; 16] = SM4_IV.try_into().expect("SM4 IV must be 16 bytes");
+    let cipher = Sm4CbcEnc::new(key.into(), iv.into());
+    cipher.encrypt_padded_vec::<Pkcs7>(firmware_with_version)
 }
 
 /// Prepare an SM2 signature for the ciphertext.

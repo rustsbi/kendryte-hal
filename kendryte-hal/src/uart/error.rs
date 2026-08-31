@@ -1,3 +1,5 @@
+use core::fmt;
+
 /// Indicate different error conditions that may occur during UART communication.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum UartError {
@@ -12,6 +14,20 @@ pub enum UartError {
     /// Receive (RX) resource not found.
     NotFoundRx,
 }
+
+impl fmt::Display for UartError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Framing => write!(f, "UART framing error"),
+            Self::Parity => write!(f, "UART parity error"),
+            Self::Overrun => write!(f, "UART receive buffer overrun"),
+            Self::NotFoundTx => write!(f, "UART transmit resource not found"),
+            Self::NotFoundRx => write!(f, "UART receive resource not found"),
+        }
+    }
+}
+
+impl core::error::Error for UartError {}
 
 impl embedded_io::Error for UartError {
     fn kind(&self) -> embedded_io::ErrorKind {

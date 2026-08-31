@@ -26,36 +26,48 @@ static INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 /// Initialize interrupt subsystem (idempotent).
 pub fn init() {
-	INITIALIZED.store(true, Ordering::SeqCst);
+    INITIALIZED.store(true, Ordering::SeqCst);
 }
 
 /// Register an interrupt handler for a given interrupt number.
 /// Safety: caller must ensure number matches actual platform IRQ mapping.
 pub unsafe fn register(irq: usize, handler: IrqHandler) {
-	if irq < MAX_INTERRUPTS { unsafe { IRQ_TABLE[irq] = Some(handler); } }
+    if irq < MAX_INTERRUPTS {
+        unsafe {
+            IRQ_TABLE[irq] = Some(handler);
+        }
+    }
 }
 
 /// Dispatch an interrupt number (called from trap trampoline).
 pub(crate) fn dispatch_irq(irq: usize) {
-	unsafe {
-		if irq < MAX_INTERRUPTS {
-			if let Some(h) = IRQ_TABLE[irq] { h(); }
-		}
-	}
+    unsafe {
+        if irq < MAX_INTERRUPTS {
+            if let Some(h) = IRQ_TABLE[irq] {
+                h();
+            }
+        }
+    }
 }
 
 /// Manually trigger a registered handler in software (for demo without PLIC).
-pub fn software_trigger(irq: usize) { dispatch_irq(irq); }
+pub fn software_trigger(irq: usize) {
+    dispatch_irq(irq);
+}
 
 /// Called for unhandled exceptions (placeholder). Users can implement an
 /// `#[exception] fn exceptions(tf: &mut TrapFrame)`; and assembly side will
 /// call symbol `exceptions` if present.
 #[inline(always)]
-pub fn unhandled_exception() -> ! { loop { core::hint::spin_loop(); } }
+pub fn unhandled_exception() -> ! {
+    loop {
+        core::hint::spin_loop();
+    }
+}
 
 /// Enable global machine interrupts (set MIE in mstatus).
 pub fn enable() {
-	unsafe {
-		core::arch::asm!("csrrs zero, mstatus, {mask}", mask = const 1 << 3, options(nostack, preserves_flags));
-	}
+    unsafe {
+        core::arch::asm!("csrrs zero, mstatus, {mask}", mask = const 1 << 3, options(nostack, preserves_flags));
+    }
 }

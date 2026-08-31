@@ -56,7 +56,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     }
 
     let attrs = f.attrs;
-    let unsafety = f.sig.unsafety;
+    let safety = f.sig.safety;
     let stmts = f.block.stmts;
     let inputs = f.sig.inputs;
 
@@ -69,7 +69,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         #[allow(non_snake_case)]
         #[inline(always)]
         #(#attrs)*
-        #unsafety fn __kendryte_rt_macros__main(#inputs) -> ! {
+        #safety fn __kendryte_rt_macros__main(#inputs) -> ! {
             #(#stmts)*
         }
     )
@@ -135,20 +135,15 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
     }
 
     let attrs = f.attrs;
-    let unsafety = f.sig.unsafety;
+    let safety = f.sig.safety;
     let stmts = f.block.stmts;
     let ident = f.sig.ident;
     let output = f.sig.output;
 
-    #[cfg(feature = "nightly")]
-    let no_mangle_attr = quote!(#[unsafe(no_mangle)]);
-    #[cfg(not(feature = "nightly"))]
-    let no_mangle_attr = quote!(#[no_mangle]);
-
     quote!(
         #(#attrs)*
-        #no_mangle_attr
-        pub #unsafety extern "C" fn #ident() #output {
+        #[unsafe(no_mangle)]
+        pub #safety extern "C" fn #ident() #output {
             #(#stmts)*
         }
     )
@@ -209,21 +204,16 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     }
 
     let attrs = f.attrs;
-    let unsafety = f.sig.unsafety;
+    let safety = f.sig.safety;
     let stmts = f.block.stmts;
     let ident = f.sig.ident;
     let output = f.sig.output;
     let inputs = f.sig.inputs;
 
-    #[cfg(feature = "nightly")]
-    let export_attr = quote!(#[unsafe(export_name = "exceptions")]);
-    #[cfg(not(feature = "nightly"))]
-    let export_attr = quote!(#[export_name = "exceptions"]);
-
     quote!(
         #(#attrs)*
-        #export_attr
-        pub #unsafety extern "C" fn #ident(#inputs) #output {
+        #[unsafe(export_name = "exceptions")]
+        pub #safety extern "C" fn #ident(#inputs) #output {
             #(#stmts)*
         }
     )

@@ -7,9 +7,9 @@ edition = "2021"
 kendryte-hal = { path = "../../../kendryte-hal" }
 kendryte-rt = { path = "../../../kendryte-rt", features = ["k230"] }
 embedded-hal = "1.0.0"
-embedded-io = "0.6.1"
-panic-halt = "0.2"
-riscv = "0.14.0"
+embedded-io = "0.7.1"
+panic-halt = "1.0"
+riscv = "0.16.1"
 
 [package.metadata.cargo-xbuild]
 target = "riscv64gc-unknown-none-elf"
